@@ -698,7 +698,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   <div id="logBox" style="padding:12px;background:#0b0b0b;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:65vh;overflow:auto"></div>
 </dialog>
 
-<!-- CMD dialog (new, read-only stream) -->
+<!-- CMD dialog (interactive; auto-fallback to logs) -->
 <dialog id="cmdDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;">
   <header style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #3b3b3b">
     <strong id="cmdTitle">CMD</strong>
@@ -707,7 +707,12 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
       <button class="fx-btn btn-animated" id="closeCmd">Close</button>
     </div>
   </header>
-  <div id="cmdBox" style="padding:12px;background:#0b0b0b;color:#e5e7eb;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:65vh;overflow:auto"></div>
+  <div id="cmdBox" style="padding:12px;background:#0b0b0b;color:#e5e7eb;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:52vh;overflow:auto"></div>
+  <div style="display:flex;gap:8px;padding:10px;border-top:1px solid #3b3b3b;background:#141414">
+    <input id="cmdInput" placeholder="Type command and press Enter..." style="flex:1;background:#0f0f0f;color:#fff;border:1px solid #333;border-radius:8px;padding:10px 12px;outline:none">
+    <button id="cmdSend" class="fx-btn ok">Send</button>
+    <button id="cmdSig"  class="fx-btn warn">Ctrl-C</button>
+  </div>
 </dialog>
 
 <!-- Confirm modal -->
@@ -1054,36 +1059,99 @@ function openCmd(id, name){
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
 
-  let wsUrl;
-  try {
-    const u = new URL(base);
-    wsUrl = (u.protocol==='https:'?'wss://':'ws://') + u.host + '/api/cmd/' + encodeURIComponent(id) + '?token=' + encodeURIComponent(tk);
-  } catch {
-    wsUrl = (base.startsWith('https')?'wss://':'ws://') + base.replace(/^https?:\/\//,'') + '/api/cmd/' + encodeURIComponent(id) + '?token=' + encodeURIComponent(tk);
-  }
-
-  const title = document.getElementById('cmdTitle');
-  const box   = document.getElementById('cmdBox');
-  title.textContent = 'CMD — ' + name;
-  box.textContent   = '';
-
-  document.getElementById('cmdDlg').showModal();
-
-  let opened = false;
-  const ws = new WebSocket(wsUrl);
-  ws.onopen = ()=>{ opened = true; box.textContent += 'Connected.\n'; };
-  ws.onmessage = (e)=>{ box.textContent += (e.data||'') + '\n'; box.scrollTop = box.scrollHeight; };
-  ws.onerror = ()=>{ /* swallow; onclose will handle */ };
-  ws.onclose = ()=>{
-    if (!opened){
-      box.textContent = 'No command available.\nBackend must expose a WebSocket at /api/cmd/:id that streams the running terminal output for this script.\n';
-    }else{
-      box.textContent += '\n[disconnected]\n';
+  // Build ws:// or wss:// URL safely
+  const makeWS = (pathWithQuery='')=>{
+    try{
+      const u = new URL(base);
+      const proto = (u.protocol==='https:') ? 'wss://' : 'ws://';
+      return proto + u.host + pathWithQuery;
+    }catch{
+      const host = base.replace(/^https?:\/\//,'');
+      const proto = base.startsWith('https') ? 'wss://' : 'ws://';
+      return proto + host + pathWithQuery;
     }
   };
 
+  // Try endpoints in order (1) /api/cmd/:id?token= (2) /api/cmd/:id (3) /api/logs/:id?token=
+  const tries = [
+    makeWS('/api/cmd/'  + encodeURIComponent(id) + (tk?('?token='+encodeURIComponent(tk)) : '')),
+    makeWS('/api/cmd/'  + encodeURIComponent(id)),
+    makeWS('/api/logs/' + encodeURIComponent(id) + (tk?('?token='+encodeURIComponent(tk)) : '')),
+  ];
+
+  const title = document.getElementById('cmdTitle');
+  const box   = document.getElementById('cmdBox');
+  const input = document.getElementById('cmdInput');
+  const bSend = document.getElementById('cmdSend');
+  const bSig  = document.getElementById('cmdSig');
+
+  title.textContent = 'CMD — ' + name;
+  box.textContent   = 'Connecting…\n';
+  document.getElementById('cmdDlg').showModal();
+
+  let ws = null, connected = false, usingLogsFallback = false;
+
+  const attachHandlers = ()=>{
+    ws.onopen = ()=>{
+      connected = true;
+      box.textContent += usingLogsFallback ? '[connected to LOGS fallback — read-only]\n' : '[connected]\n';
+    };
+    ws.onmessage = (e)=>{
+      box.textContent += (e.data ?? '') + '\n';
+      box.scrollTop = box.scrollHeight;
+    };
+    ws.onerror = ()=>{
+      if (!connected) notifyError('CMD connection error');
+    };
+    ws.onclose = ()=>{
+      if (!connected){
+        nextTry(); // move to next endpoint
+      }else{
+        box.textContent += '[connection closed]\n';
+      }
+    };
+  };
+
+  let idx = -1;
+  const nextTry = ()=>{
+    idx++;
+    if (idx >= tries.length){
+      box.textContent += '[connection closed]\n';
+      notifyError('CMD connection error');
+      return;
+    }
+    usingLogsFallback = (idx === 2); // third try is /api/logs
+    try{
+      ws = new WebSocket(tries[idx]);
+      attachHandlers();
+      // Safety timeout: if it doesn’t open in 2.5s, move on
+      const guard = setTimeout(()=>{ if (!connected && ws && ws.readyState<2){ try{ ws.close(); }catch{} } }, 2500);
+      ws.addEventListener('open', ()=> clearTimeout(guard));
+    }catch{
+      nextTry();
+    }
+  };
+  nextTry();
+
+  // Send helpers (best-effort: raw text OR JSON shape many backends accept)
+  const sendLine = (line)=>{
+    if (!ws || ws.readyState!==1) return;
+    try { ws.send(line.endsWith('\n') ? line : (line+'\n')); } catch {}
+    // also try JSON envelope some servers expect
+    try { ws.send(JSON.stringify({stdin: line+'\n'})); } catch {}
+  };
+  const sendCtrlC = ()=>{
+    if (!ws || ws.readyState!==1) return;
+    try { ws.send('\u0003'); } catch {}
+    try { ws.send(JSON.stringify({signal:'SIGINT'})); } catch {}
+  };
+
+  bSend.onclick = ()=>{ const v=(input.value||'').trim(); if(v){ sendLine(v); input.value=''; input.focus(); } };
+  input.onkeydown = (e)=>{ if(e.key==='Enter'){ e.preventDefault(); bSend.click(); } };
+  bSig.onclick = ()=> sendCtrlC();
+
   document.getElementById('copyCmd').onclick  = ()=>{ navigator.clipboard.writeText(box.textContent||''); notifySuccess('Copied.'); };
-  document.getElementById('closeCmd').onclick = ()=> document.getElementById('cmdDlg').close();
+  document.getElementById('closeCmd').onclick = ()=>{ try{ ws && ws.close(); }catch{} document.getElementById('cmdDlg').close(); };
 }
 
 async function restartAll(){
