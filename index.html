@@ -536,7 +536,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 }
 #fxConfirm .hd{ padding:12px 16px; font-weight:800; letter-spacing:.02em; background:linear-gradient(180deg,#101014 0%, #15151a 100%) !important; border-bottom:1px solid #2a2a2f; }
 #fxConfirm .msg{ padding:16px; font-size:1.05rem }
-#fxConfirm .bar{ padding:12px 14px; display:flex; gap:10px; justify-content:flex-end; background:rgba(20,20,24,.65); border-top:1px solid #2a2a2f; }
+#fxConfirm .bar{ padding:12px 14px; display:flex; gap:10px; justify-content:flex-end; background:rgba(20,20,24,.65); border-top:1px solid #2a2af; }
 .fxbtn{ border:0; padding:.6rem 1.1rem; border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .1s ease, box-shadow .2s ease; }
 .fxbtn.ok{ background:#0ba97b; color:#fff }
 .fxbtn.cancel{ background:#2b2b35; color:#e5e8f0 }
@@ -750,6 +750,11 @@ const notifyInfo   =(m)=>addToast('info', m);
 
 const LS_BASE='fx_base', LS_TOKEN='fx_token', LS_INT='fx_interval';
 const $ = s=>document.querySelector(s);
+
+// === Google Sheet (fallback source) ===
+// Make sure the sheet is viewable by "Anyone with the link" or Publish to web.
+const SHEET_ID   = '1q0xFln-clHvgmshY_eq7KMSORQok4YsEsvQvJ2msRpg';
+const SHEET_NAME = 'Live';
 
 function httpsHttpGuard(){
   const base = ($('#base')?.value || '').trim();
@@ -988,14 +993,72 @@ function fmtUptime(s){ s=Math.max(0,s|0); const h=Math.floor(s/3600), m=Math.flo
 
 function showLoading(on){ const el=document.getElementById('loading'); if(el) el.classList.toggle('on', !!on); }
 
+/* ===== Google Sheet fallback loader ===== */
+function normalizeLabel(s){ return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,''); }
+
+async function loadFromSheet(){
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}&tq=${encodeURIComponent('select *')}`;
+  showLoading(true);
+  try{
+    const txt = await (await fetch(url, {cache:'no-store'})).text();
+    const json = JSON.parse(txt.substring(txt.indexOf('{'), txt.lastIndexOf('}')+1));
+    const table = json.table;
+
+    const H = {};
+    table.cols.forEach((c,i)=>{ H[normalizeLabel(c.label||('col'+i))] = i; });
+    const gi = (...keys)=> keys.map(normalizeLabel).find(k=> H[k]!=null) ?? null;
+    const I = {
+      name:   gi('name'),
+      path:   gi('path'),
+      pid:    gi('pid'),
+      cpu:    gi('cpu','cpu%','cpupercent'),
+      mem:    gi('mem','mem%','mempercent','ram','ram%','rampercent'),
+      up:     gi('uptime','uptime_sec','uptimesec','uptimeseconds'),
+      status: gi('status'),
+    };
+    const val = (row, idx)=> (idx==null? null : (row.c[idx]?.v ?? row.c[idx]?.f ?? null));
+
+    const rows = (table.rows||[]).map(r=>{
+      const name   = val(r, I.name) ?? '';
+      const path   = val(r, I.path) ?? '';
+      const pid    = val(r, I.pid)  ?? '';
+      const cpu    = Number(val(r, I.cpu) ?? 0);
+      const mem    = Number(val(r, I.mem) ?? 0);
+      const uptime = Number(val(r, I.up)  ?? 0);
+      const status = String(val(r, I.status) ?? 'unknown').toLowerCase();
+      return {
+        id: String(path || pid || name || Math.random().toString(36).slice(2)),
+        name, path, pid, cpu, mem, uptime, status
+      };
+    });
+
+    renderRows(rows);
+    notifySuccess('Loaded from Google Sheet ✓');
+  }catch(e){
+    console.error(e);
+    notifyError('Load from Sheet failed: ' + (e?.message||e));
+  }finally{
+    showLoading(false);
+  }
+}
+
 function loadOverview(){
+  // If Base URL empty -> read from Google Sheet "Live" tab
+  const baseVal = (document.getElementById('base')?.value || '').trim();
+  if(!baseVal){
+    return loadFromSheet();
+  }
   const A = getApi(); if(!A) return Promise.resolve();
   showLoading(true);
   const url = A.base + '/api/overview?token=' + encodeURIComponent(A.tk);
   return fetch(url, { cache:'no-store' })
     .then(r => r.json())
     .then(rows => { renderRows(rows || []); })
-    .catch(e=>{ console.error(e); notifyError('Refresh failed: ' + e.message); })
+    .catch(async (e)=>{
+      console.error(e);
+      notifyWarn('Agent API failed. Trying Google Sheet…');
+      await loadFromSheet();
+    })
     .finally(()=> showLoading(false));
 }
 
