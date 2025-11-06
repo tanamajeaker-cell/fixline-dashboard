@@ -11,15 +11,13 @@
   #stage{position:fixed;inset:0}
   .full {position:fixed; inset:0; width:100%; height:100%; border:0; display:block}
 
-  /* === Loading overlay (scoped) === */
+  /* === Loading overlay (outer wrapper) === */
   #fxLoader{
     position:fixed; inset:0; z-index:99999;
     display:none; align-items:center; justify-content:center;
     background:#000000;
   }
   #fxLoader.on{ display:flex; }
-
-  /* Spinner visuals (scoped) */
   #fxLoader .spinner-container{ position:relative; width:200px; height:200px; animation:fx-rotate 10s linear infinite; }
   #fxLoader .orbit{
     position:absolute; top:50%; left:50%;
@@ -29,20 +27,17 @@
   }
   #fxLoader .orbit:nth-child(2){ width:140px; height:140px; animation-delay:.3s; }
   #fxLoader .orbit:nth-child(3){ width:100px; height:100px; animation-delay:.6s; }
-
   #fxLoader .particle{ position:absolute; width:16px; height:16px; border-radius:50%; box-shadow:0 0 40px currentColor; }
   #fxLoader .particle-1{ top:0; left:50%; transform:translateX(-50%); background:pink;      animation:fx-orbit1 3s linear infinite; }
   #fxLoader .particle-2{ top:50%; right:0; transform:translateY(-50%); background:lightblue; animation:fx-orbit2 2.5s linear infinite; }
   #fxLoader .particle-3{ bottom:0; left:50%; transform:translateX(-50%); background:lightgreen; animation:fx-orbit3 3.5s linear infinite; }
   #fxLoader .particle-4{ top:50%; left:0; transform:translateY(-50%); background:orange;      animation:fx-orbit4 2.8s linear infinite; }
-
   #fxLoader .core{
     position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
     width:40px; height:40px; background:wheat; border-radius:50%;
     box-shadow:0 0 30px rgba(255,255,255,.5), inset 0 0 20px rgba(255,255,255,.3);
     animation:fx-coreGlow 2s ease-in-out infinite alternate;
   }
-
   @keyframes fx-rotate{ 100%{ transform:rotate(360deg); } }
   @keyframes fx-pulse{
     0%,100%{ transform:translate(-50%,-50%) scale(1);   opacity:.3; }
@@ -83,7 +78,7 @@
     referrerpolicy="no-referrer" title="FixLine Dashboard"></iframe>
 </div>
 
-<!-- Loading overlay -->
+<!-- Loading overlay (outer wrapper) -->
 <div id="fxLoader" aria-hidden="true">
   <div class="spinner-container">
     <div class="orbit"></div>
@@ -115,89 +110,40 @@
       --text:#e8e8e8;
       --muted:#aaaaaa;
     }
-
     *{margin:0;padding:0;box-sizing:border-box;font-family:'Quicksand',sans-serif}
-
-    body{
-      min-height:100vh;background:var(--bg);
-      display:flex;align-items:center;justify-content:center;overflow:hidden;
-    }
-
-    /* ===== grid stage + red scan ===== */
-    section{
-      position:absolute;inset:0;display:flex;flex-wrap:wrap;gap:2px;
-      justify-content:center;align-items:center;overflow:hidden;
-    }
+    body{ min-height:100vh;background:var(--bg); display:flex;align-items:center;justify-content:center;overflow:hidden; }
+    /* grid/scan */
+    section{ position:absolute;inset:0;display:flex;flex-wrap:wrap;gap:2px; justify-content:center;align-items:center;overflow:hidden; }
     section::before{
       content:""; position:absolute; inset:0;
-      background:linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgba(255,42,42,0.12) 35%,
-      rgba(255,42,42,0.55) 50%,
-      rgba(255,42,42,0.12) 65%,
-      transparent 100%
-      );
+      background:linear-gradient(to bottom,transparent 0%,rgba(255,42,42,0.12) 35%,rgba(255,42,42,0.55) 50%,rgba(255,42,42,0.12) 65%,transparent 100%);
       animation:scan 2s linear infinite;
     }
     @keyframes scan{0%{transform:translateY(-100%)}100%{transform:translateY(100%)}}
-    section span{
-      display:block;position:relative;z-index:2;
-      width:calc(6.25vw - 2px);height:calc(6.25vw - 2px);
-      background:var(--tile);transition:background .18s ease;
-    }
+    section span{ display:block;position:relative;z-index:2; width:calc(6.25vw - 2px);height:calc(6.25vw - 2px); background:var(--tile);transition:background .18s ease; }
     section span:hover{background:var(--accent)}
-    @media (max-width:900px){
-      section span{width:calc(10vw - 2px);height:calc(10vw - 2px)}
-    }
-    @media (max-width:600px){
-      section span{width:calc(20vw - 2px);height:calc(20vw - 2px)}
-    }
-
-    /* ===== animated headline (above card) ===== */
-    .headline{
-      position:absolute;top:6vh;left:50%;transform:translateX(-50%);
-      z-index:1001;pointer-events:none;
-    }
-    .reveal{
-      position:relative;display:flex;gap:.05em;
-      color:#ffd9d9;letter-spacing:.12em;text-transform:uppercase;
-      font-weight:700;font-size:clamp(1.1rem,2.6vw,1.7rem);
-      text-shadow:0 0 22px rgba(255,42,42,.35);
-      white-space:pre;
-    }
+    @media (max-width:900px){ section span{width:calc(10vw - 2px);height:calc(10vw - 2px)} }
+    @media (max-width:600px){ section span{width:calc(20vw - 2px);height:calc(20vw - 2px)} }
+    /* headline */
+    .headline{ position:absolute;top:6vh;left:50%;transform:translateX(-50%); z-index:1001;pointer-events:none; }
+    .reveal{ position:relative;display:flex;gap:.05em; color:#ffd9d9;letter-spacing:.12em;text-transform:uppercase; font-weight:700;font-size:clamp(1.1rem,2.6vw,1.7rem); text-shadow:0 0 22px rgba(255,42,42,.35); white-space:pre; }
     .reveal span{opacity:0;transform:scale(0);animation:rfade 2.4s forwards}
-    .reveal::before,.reveal::after{
-      content:"";position:absolute;top:0;height:100%;width:2px;background:#fff;
-      opacity:0;transform:scale(0);
-    }
+    .reveal::before,.reveal::after{ content:"";position:absolute;top:0;height:100%;width:2px;background:#fff; opacity:0;transform:scale(0); }
     .reveal::before{left:50%;animation:rleft 1.5s cubic-bezier(.7,-.6,.3,1.5) forwards}
     .reveal::after{right:50%;animation:rright 1.5s cubic-bezier(.7,-.6,.3,1.5) forwards}
     @keyframes rfade{to{opacity:1;transform:scale(1)}}
     @keyframes rleft{to{left:-6%;opacity:1;transform:scale(.9)}}
     @keyframes rright{to{right:-6%;opacity:1;transform:scale(.9)}}
-
-    /* ===== sign-in card ===== */
-    .signin{
-      position:absolute;z-index:1000;width:min(400px,92vw);
-      background:#222;border-radius:6px;padding:40px;
-      box-shadow:0 15px 35px rgba(0,0,0,.9);
-      outline:1px solid rgba(255,255,255,.04);
-    }
+    /* card */
+    .signin{ position:absolute;z-index:1000;width:min(400px,92vw); background:#222;border-radius:6px;padding:40px; box-shadow:0 15px 35px rgba(0,0,0,.9); outline:1px solid rgba(255,255,255,.04); }
     .content{display:flex;flex-direction:column;gap:28px;align-items:center}
-h2{
-  font-size:2rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);
-  text-shadow:0 0 12px color-mix(in srgb, var(--accent) 50%, transparent);
-}
-.sub{ color:#fff; }
-
-.form{width:100%;display:flex;flex-direction:column;gap:22px}
+    h2{ font-size:2rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent); text-shadow:0 0 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+    .sub{ color:#fff; }
+    .form{width:100%;display:flex;flex-direction:column;gap:22px}
     .inputBox{position:relative;width:100%}
-    .inputBox input[type="text"],
-    .inputBox input[type="password"]{
+    .inputBox input[type="text"], .inputBox input[type="password"]{
       width:100%;background:#333;color:#fff;border:0;outline:0;border-radius:6px;
-      padding:24px 12px 10px;font-size:1rem;font-weight:500;
-      box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+      padding:24px 12px 10px;font-size:1rem;font-weight:500; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
     }
     .inputBox i{position:absolute;left:10px;top:10px;font-style:normal;color:var(--muted);transition:.35s}
     .inputBox input:focus + i,.inputBox input:valid + i{transform:translateY(-9px);font-size:.8rem;color:#fff}
@@ -206,27 +152,16 @@ h2{
     .links a#forgot:hover{color:#ffb3b3;text-decoration:underline}
     .remember{display:inline-flex;align-items:center;gap:8px;color:#ddd;user-select:none}
     .remember input{accent-color:var(--accent)}
-
-    /* ===== Voltage button ===== */
+    /* voltage button */
     .form .voltage-button{align-self:center;}
-    .voltage-button{
-      position:relative;display:inline-block;width:max-content;margin:0 auto;
-      border-radius:9999px;overflow:hidden;
-    }
+    .voltage-button{ position:relative;display:inline-block;width:max-content;margin:0 auto; border-radius:999px;overflow:hidden; }
     .voltage-button button{
-      color:#fff;background:var(--accent);
-      padding:1rem 3.2rem 1.1rem;border-radius:5rem;
-      border:4px solid #ff5a5a;
-      font-size:1.1rem;letter-spacing:.075em;line-height:1;
-      transition:background .3s,transform .06s,filter .2s;display:block;
+      color:#fff;background:var(--accent); padding:1rem 3.2rem 1.1rem;border-radius:5rem;
+      border:4px solid #ff5a5a; font-size:1.1rem;letter-spacing:.075em;line-height:1; transition:background .3s,transform .06s,filter .2s;display:block;
     }
     .voltage-button button:hover{cursor:pointer;background:#e02121}
     .voltage-button button:active{transform:translateY(1px)}
-    .voltage-button svg{
-      display:block;position:absolute;top:-0.75em;left:-0.25em;
-      width:calc(100% + 0.5em);height:calc(100% + 1.5em);
-      pointer-events:none;opacity:0;transition:opacity .4s;transition-delay:.1s;
-    }
+    .voltage-button svg{ display:block;position:absolute;top:-0.75em;left:-0.25em; width:calc(100% + 0.5em);height:calc(100% + 1.5em); pointer-events:none;opacity:0;transition:opacity .4s;transition-delay:.1s; }
     .voltage-button svg path{stroke-dasharray:100;filter:url('#glow')}
     .voltage-button svg .line-1{stroke:#f6de8d;stroke-dashoffset:0;animation:spark-1 3s linear infinite}
     .voltage-button svg .line-2{stroke:#6bfeff;stroke-dashoffset:500;animation:spark-2 3s linear infinite}
@@ -237,30 +172,15 @@ h2{
     .voltage-button .dot-3{top:0;left:80%;animation:fly-up 3s linear infinite 1s}
     .voltage-button .dot-4{bottom:0;left:30%;animation:fly-down 3s linear infinite 2.5s}
     .voltage-button .dot-5{bottom:0;left:65%;animation:fly-down 3s linear infinite 1.5s}
-    .voltage-button button:hover + svg,
-    .voltage-button button:hover + svg + .dots{opacity:1}
-    .voltage-button.play svg,
-    .voltage-button.play .dots{opacity:1}
+    .voltage-button button:hover + svg, .voltage-button button:hover + svg + .dots{opacity:1}
+    .voltage-button.play svg, .voltage-button.play .dots{opacity:1}
     @keyframes spark-1{to{stroke-dashoffset:-1000}}
     @keyframes spark-2{to{stroke-dashoffset:-500}}
-    @keyframes fly-up{
-      0%{opacity:0;transform:translateY(0) scale(.2)}
-      5%{opacity:1;transform:translateY(-1.5rem) scale(.4)}
-      10%,100%{opacity:0;transform:translateY(-3rem) scale(.2)}
-    }
-    @keyframes fly-down{
-      0%{opacity:0;transform:translateY(0) scale(.2)}
-      5%{opacity:1;transform:translateY(1.5rem) scale(.4)}
-      10%,100%{opacity:0;transform:translateY(3rem) scale(.2)}
-    }
-
-    /* ===== toasts (login) ===== */
+    @keyframes fly-up{ 0%{opacity:0;transform:translateY(0) scale(.2)} 5%{opacity:1;transform:translateY(-1.5rem) scale(.4)} 10%,100%{opacity:0;transform:translateY(-3rem) scale(.2)} }
+    @keyframes fly-down{ 0%{opacity:0;transform:translateY(0) scale(.2)} 5%{opacity:1;transform:translateY(1.5rem) scale(.4)} 10%,100%{opacity:0;transform:translateY(3rem) scale(.2)} }
+    /* toasts */
     .toast{position:fixed;right:16px;bottom:16px;display:grid;gap:10px;z-index:2000}
-    .notification{
-      min-width:22rem;border-radius:.375rem;background:var(--bgX);color:var(--fgX);
-      box-shadow:0 1px 10px rgba(0,0,0,.5);transform:translateY(30px);
-      opacity:0;visibility:hidden;animation:fade-in 3s linear forwards;position:relative;
-    }
+    .notification{ min-width:22rem;border-radius:.375rem;background:var(--bgX);color:var(--fgX); box-shadow:0 1px 10px rgba(0,0,0,.5);transform:translateY(30px); opacity:0;visibility:hidden;animation:fade-in 3s linear forwards;position:relative; }
     .notification__body{display:flex;align-items:center;gap:.5rem;padding:1rem .75rem}
     .notification__progress{
       position:absolute;left:.4rem;bottom:.4rem;height:.2rem;width:calc(100% - .8rem);
@@ -316,8 +236,8 @@ h2{
                 <feMergeNode in="SourceGraphic"></feMergeNode>
               </feMerge>
             </filter>
-            <path class="voltage line-1" d="m216.3 51.2c-3.7 0-3.7-1.1-7.3-1.1-3.7 0-3.7 6.8-7.3 6.8-3.7 0-3.7-4.6-7.3-4.6-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-0.9-7.3-0.9-3.7 0-3.7-2.7-7.3-2.7-3.7 0-3.7 7.8-7.3 7.8-3.7 0-3.7-4.9-7.3-4.9-3.7 0-3.7-7.8-7.3-7.8-3.7 0-3.7-1.1-7.3-1.1-3.7 0-3.7 3.1-7.3 3.1-3.7 0-3.7 10.9-7.3 10.9-3.7 0-3.7-12.5-7.3-12.5-3.7 0-3.7 4.6-7.3 4.6-3.7 0-3.7 4.5-7.3 4.5-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-10-7.3-10-3.7 0-3.7-0.4-7.3-0.4-3.7 0-3.7 2.3-7.3 2.3-3.7 0-3.7 7.1-7.3 7.1-3.7 0-3.7-11.2-7.3-11.2-3.7 0-3.7 4.6-7.3 4.6-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-2.9-7.3-2.9-3.7 0-3.7 8.4-7.3 8.4-3.7 0-3.7-14.6-7.3-14.6-3.7 0-3.7 5.8-7.3 5.8-2.2 0-3.8-0.4-5.5-1.5-1.8-1.1-1.8-2.9-2.9-4.8-1-1.8 1.9-2.7 1.9-4.8 0-3.4-2.1-3.4-2.1-6.8s-9.9-3.4-9.9-6.8 8-3.4 8-6.8c0-2.2 2.1-2.4 3.1-4.2 1.1-1.8 0.2-3.9 2-5 1.8-1 3.1-7.9 5.3-7.9 3.7 0 3.7 0.9 7.3 0.9 3.7 0 3.7 6.7 7.3 6.7 3.7 0 3.7-1.8 7.3-1.8 3.7 0 3.7-0.6 7.3-0.6 3.7 0 3.7-7.8 7.3-7.8h7.3c3.7 0 3.7 4.7 7.3 4.7 3.7 0 3.7-1.1 7.3-1.1 3.7 0 3.7 11.6 7.3 11.6 3.7 0 3.7-2.6 7.3-2.6 3.7 0 3.7-12.9 7.3-12.9 3.7 0 3.7 10.9 7.3 10.9 3.7 0 3.7 1.3 7.3 1.3 3.7 0 3.7-8.7 7.3-8.7 3.7 0 3.7 11.5 7.3 11.5 3.7 0 3.7-1.4 7.3-1.4 3.7 0 3.7-2.6 7.3-2.6 3.7 0 3.7-5.8 7.3-5.8 3.7 0 3.7-1.3 7.3-1.3 3.7 0 3.7 6.6 7.3 6.6s3.7-9.3 7.3-9.3c3.7 0 3.7 0.2 7.3 0.2 3.7 0 3.7 8.5 7.3 8.5 3.7 0 3.7 0.2 7.3 0.2 3.7 0 3.7-1.5 7.3-1.5 3.7 0 3.7 1.6 7.3 1.6s3.7-5.1 7.3-5.1c2.2 0 0.6 9.6 2.4 10.7s4.1-2 5.1-0.1c1 1.8 10.3 2.2 10.3 4.3 0 3.4-10.7 3.4-10.7 6.8s1.2 3.4 1.2 6.8 1.9 3.4 1.9 6.8c0 2.2 7.2 7.7 6.2 9.5-1.1 1.8-12.3-6.5-14.1-5.5-1.7 0.9-0.1 6.2-2.2 6.2z" fill="transparent" stroke="#fff"/>
-            <path class="voltage line-2" d="m216.3 52.1c-3 0-3-0.5-6-0.5s-3 3-6 3-3-2-6-2-3 1.6-6 1.6-3-0.4-6-0.4-3-1.2-6-1.2-3 3.4-6 3.4-3-2.2-6-2.2-3-3.4-6-3.4-3-0.5-6-0.5-3 1.4-6 1.4-3 4.8-6 4.8-3-5.5-6-5.5-3 2-6 2-3 2-6 2-3 1.6-6 1.6-3-4.4-6-4.4-3-0.2-6-0.2-3 1-6 1-3 3.1-6 3.1-3-4.9-6-4.9-3 1.5-6 1.5-3 1.6-6 1.6-3-1.3-6-1.3-3 3.7-6 3.7-3-6.4-6-6.4-3 2.5-6 2.5h-6c-3 0-3-0.6-6-0.6s-3-1.4-6-1.4-3 0.9-6 0.9-3 4.3-6 4.3-3-3.5-6-3.5c-2.2 0-3.4-1.3-5.2-2.3-1.8-1.1-3.6-1.5-4.6-3.3s-4.4-3.5-4.4-5.7c0-3.4 0-3.4 0-6.8s2.9-3.4 2.9-6.8-0.8-3.4-0.8-6.8c0-2.2 0.3-4.2 1.3-5.9 1.1-1.8 0.8-6.2 2.6-7.3 1.8-1 5.5-2 7.7-2 3 0 3 2 6 2s3-0.5 6-0.5 3 5.1 6 5.1 3-1.1 6-1.1 3-5.6 6-5.6 3 4.8 6 4.8 3 0.6 6 0.6 3-3.8 6-3.8 3 5.1 6 5.1 3-0.6 6-0.6 3-1.2 6-1.2 3-2.6 6-2.6 3-0.6 6-0.6 3 2.9 6 2.9 3-4.1 6-4.1 3 0.1 6 0.1 3 3.7 6 3.7 3 0.1 6 0.1 3-0.6 6-0.6 3 0.7 6 0.7 3-2.2 6-2.2 3 4.4 6 4.4 3-1.7 6-1.7 3-4 6-4 3 4.7 6 4.7 3-0.5 6-0.5 3-0.8 6-0.8 3-3.8 6-3.8 3 6.3 6 6.3 3-4.8 6-4.8 3 1.9 6 1.9 3-1.9 6-1.9 3 1.3 6 1.3c2.2 0 5-0.5 6.7 0.5 1.8 1.1 2.4 4 3.5 5.8 1 1.8 0.3 3.7 0.3 5.9 0 3.4 3.4 3.4 3.4 6.8s-3.3 3.4-3.3 6.8 4 3.4 4 6.8c0 2.2-6 2.7-7 4.4-1.1 1.8 1.1 6.7-0.7 7.7-1.6 0.8-4.7-1.1-6.8-1.1z" fill="transparent" stroke="#fff"/>
+            <path class="voltage line-1" d="m216.3 51.2c-3.7 0-3.7-1.1-7.3-1.1-3.7 0-3.7 6.8-7.3 6.8-3.7 0-3.7-4.6-7.3-4.6-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-0.9-7.3-0.9-3.7 0-3.7-2.7-7.3-2.7-3.7 0-3.7 7.8-7.3 7.8-3.7 0-3.7-4.9-7.3-4.9-3.7 0-3.7-7.8-7.3-7.8-3.7 0-3.7-1.1-7.3-1.1-3.7 0-3.7 3.1-7.3 3.1-3.7 0-3.7 10.9-7.3 10.9-3.7 0-3.7-12.5-7.3-12.5-3.7 0-3.7 4.6-7.3 4.6-3.7 0-3.7 4.5-7.3 4.5-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-10-7.3-10-3.7 0-3.7-0.4-7.3-0.4-3.7 0-3.7 2.3-7.3 2.3-3.7 0-3.7 7.1-7.3 7.1-3.7 0-3.7-11.2-7.3-11.2-3.7 0-3.7 4.6-7.3 4.6-3.7 0-3.7 3.6-7.3 3.6-3.7 0-3.7-2.9-7.3-2.9-3.7 0-3.7 8.4-7.3 8.4-3.7 0-3.7-14.6-7.3-14.6-3.7 0-3.7 5.8-7.3 5.8-2.2 0-3.8-0.4-5.5-1.5-1.8-1.1-1.8-2.9-2.9-4.8-1-1.8 1.9-2.7 1.9-4.8 0-3.4-2.1-3.4-2.1-6.8s-9.9-3.4-9.9-6.8 8-3.4 8-6.8c0-2.2 2.1-2.4 3.1-4.2 1.1-1.8 0.2-3.9 2-5 1.8-1 3.1-7.9 5.3-7.9 3.7 0 3.7 0.9 7.3 0.9 3.7 0 3.7 6.7 7.3 6.7 3.7 0 3.7-1.8 7.3-1.8 3.7 0 3.7-0.6 7.3-0.6 3.7 0 3.7-7.8 7.3-7.8h7.3c3.7 0 3.7 4.7 7.3 4.7 3.7 0 3.7-1.1 7.3-1.1 3.7 0 3.7 11.6 7.3 11.6 3.7 0 3.7-2.6 7.3-2.6 3.7 0 3.7-12.5 7.3-12.5 3.7 0 3.7 10.9 7.3 10.9 3.7 0 3.7 1.3 7.3 1.3 3.7 0 3.7-8.7 7.3-8.7 3.7 0 3.7 11.5 7.3 11.5 3.7 0 3.7-1.4 7.3-1.4 3.7 0 3.7-2.6 7.3-2.6 3.7 0 3.7-5.8 7.3-5.8 3.7 0 3.7-1.3 7.3-1.3 3.7 0 3.7 6.6 7.3 6.6s3.7-9.3 7.3-9.3c3.7 0 3.7 0.2 7.3 0.2 3.7 0 3.7 8.5 7.3 8.5 3.7 0 3.7 0.2 7.3 0.2 3.7 0 3.7-1.5 7.3-1.5 3.7 0 3.7 1.6 7.3 1.6s3.7-5.1 7.3-5.1c2.2 0 0.6 9.6 2.4 10.7s4.1-2 5.1-0.1c1 1.8 10.3 2.2 10.3 4.3 0 3.4-10.7 3.4-10.7 6.8s1.2 3.4 1.2 6.8 1.9 3.4 1.9 6.8c0 2.2 7.2 7.7 6.2 9.5-1.1 1.8-12.3-6.5-14.1-5.5-1.7 0.9-0.1 6.2-2.2 6.2z" fill="transparent" stroke="#fff"/>
+            <path class="voltage line-2" d="m216.3 52.1c-3 0-3-0.5-6-0.5s-3 3-6 3-3-2-6-2-3 1.6-6 1.6-3-0.4-6-0.4-3-1.2-6-1.2-3 3.4-6 3.4-3-2.2-6-2.2-3-3.4-6-3.4-3-0.5-6-0.5-3 1.4-6 1.4-3 4.8-6 4.8-3-5.5-6-5.5-3 2-6 2-3 2-6 2-3 1.6-6 1.6-3-4.4-6-4.4-3-0.2-6-0.2-3 1-6 1-3 3.1-6 3.1-3-4.9-6-4.9-3 1.5-6 1.5-3 1.6-6 1.6-3-1.3-6-1.3-3 3.7-6 3.7-3-6.4-6-6.4-3 2.5-6 2.5h-6c-3 0-3-0.6-6-0.6s-3-1.4-6-1.4-3 0.9-6 0.9-3 4.3-6 4.3-3-3.5-6-3.5c-2.2 0-3.4-1.3-5.2-2.3-1.8-1.1-3.6-1.5-4.6-3.3s-4.4-3.5-4.4-5.7c0-3.4 0.4-3.4 0.4-6.8s2.9-3.4 2.9-6.8-0.8-3.4-0.8-6.8c0-2.2 0.3-4.2 1.3-5.9 1.1-1.8 0.8-6.2 2.6-7.3 1.8-1 5.5-2 7.7-2 3 0 3 2 6 2s3-0.5 6-0.5 3 5.1 6 5.1 3-1.1 6-1.1 3-5.6 6-5.6 3 4.8 6 4.8 3 0.6 6 0.6 3-3.8 6-3.8 3 5.1 6 5.1 3-0.6 6-0.6 3-1.2 6-1.2 3-2.6 6-2.6 3-0.6 6-0.6 3 2.9 6 2.9 3-4.1 6-4.1 3 0.1 6 0.1 3 3.7 6 3.7 3 0.1 6 0.1 3-0.6 6-0.6 3 0.7 6 0.7 3-2.2 6-2.2 3 4.4 6 4.4 3-1.7 6-1.7 3-4 6-4 3 4.7 6 4.7 3-0.5 6-0.5 3-0.8 6-0.8 3-3.8 6-3.8 3 6.3 6 6.3 3-4.8 6-4.8 3 1.9 6 1.9 3-1.9 6-1.9 3 1.3 6 1.3c2.2 0 5-0.5 6.7 0.5 1.8 1.1 2.4 4 3.5 5.8 1 1.8 0.3 3.7 0.3 5.9 0 3.4 3.4 3.4 3.4 6.8s-3.3 3.4-3.3 6.8 4 3.4 4 6.8c0 2.2-6 2.7-7 4.4-1.1 1.8 1.1 6.7-0.7 7.7-1.6 0.8-4.7-1.1-6.8-1.1z" fill="transparent" stroke="#fff"/>
           </svg>
 
           <div class="dots" aria-hidden="true">
@@ -359,9 +279,7 @@ h2{
       n.innerHTML=`<div class="notification__body">${text}</div><div class="notification__progress"></div>`;
       wrap.appendChild(n); setTimeout(()=>n.remove(),3200);
     }
-    document.getElementById('forgot').addEventListener('click',e=>{
-      e.preventDefault(); toast('info','Contact to BA Support');
-    });
+    document.getElementById('forgot').addEventListener('click',e=>{ e.preventDefault(); toast('info','Contact to BA Support'); });
 
     document.querySelectorAll('.voltage-button').forEach(wrap=>{
       const btn=wrap.querySelector('button');
@@ -431,16 +349,11 @@ body{
 /* === TYPING ANIMATION — NO CURSOR === */
 .fx-logo h1{ 
   font-size:1.9rem; font-weight:800; letter-spacing:.04em; text-shadow:0 0 10px rgba(255,255,255,.15);
-  white-space: nowrap;
-  overflow: hidden;
-  width: 0;
-  animation: typing 2.5s steps(7) forwards;
+  white-space: nowrap; overflow: hidden; width: 0; animation: typing 2.5s steps(7) forwards;
 }
 @keyframes typing { from { width: 0; } to { width: 7ch; } }
 
-#clock{
-  margin-left:auto; text-align:right; line-height:1; padding-right:.5rem
-}
+#clock{ margin-left:auto; text-align:right; line-height:1; padding-right:.5rem }
 #clock .date{ font-size:.78rem; opacity:.85 }
 #clock .time{ font-size:1.05rem; font-weight:700 }
 
@@ -567,6 +480,13 @@ td.pct::before{
 }
 td.pct > span{ position:relative }
 
+/* status pills */
+.pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;font-size:.78rem;font-weight:700}
+.p-run{background:#0b4;color:#eaff}
+.p-stalled{background:#512e08;color:#ffa536}
+.p-exited{background:#4d0f16;color:#ff8899}
+.p-unknown{background:#333;color:#ddd}
+
 /* Footer */
 footer{ width:100%; height:2em; background:black; display:flex; justify-content:center; align-items:center; position:sticky; bottom:0; color:gray }
 
@@ -575,7 +495,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 .flag-gb{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><rect width='60' height='40' fill='%23012169'/><path d='M0 0 L60 40 M60 0 L0 40' stroke='%23ffffff' stroke-width='8'/><path d='M0 0 L60 40 M60 0 L0 40' stroke='%23c8102e' stroke-width='4'/><path d='M30 0 v40 M0 20 h60' stroke='%23ffffff' stroke-width='10'/><path d='M30 0 v40 M0 20 h60' stroke='%23c8102e' stroke-width='6'/></svg>");}
 .flag-cn{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 40'><rect width='60' height='40' fill='%23DE2910'/><polygon fill='%23FFDE00' points='12,4 13.8,9.5 20,9.5 15,12.5 17,18 12,14.5 7,18 9,12.5 4,9.5 10.2,9.5'/><circle cx='22' cy='7' r='1.6' fill='%23FFDE00'/><circle cx='25' cy='10' r='1.6' fill='%23FFDE00'/><circle cx='25' cy='14' r='1.6' fill='%23FFDE00'/><circle cx='22' cy='17' r='1.6' fill='%23FFDE00'/></svg>");}
 
-/* ======= TOASTS — same style as login example ======= */
+/* ======= TOASTS ======= */
 .toast{ position:fixed; right:16px; bottom:16px; display:grid; gap:10px; z-index:2000 }
 .notification{
   --bg:#313e2c; --primary:#aaec8a;
@@ -599,53 +519,36 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 @keyframes dash-fade-in{5%{opacity:1;visibility:visible;transform:translateY(0)}95%{opacity:1;transform:translateY(0)}}
 @keyframes dash-progress{ to{transform:scaleX(1)} }
 
-/* ======= CONFIRM MODAL — top drop, wallpaper colors ======= */
+/* ======= CONFIRM MODAL (top drop) ======= */
 #fxConfirm{
-  position:fixed; inset:0; z-index:4000;       /* above header */
-  display:none;                                 /* hidden by default */
-  align-items:flex-start;                       /* stick to top */
-  justify-content:center;                       /* center horizontally */
-  padding-top:calc(4em + 16px);                 /* drop just below 4em header */
-  background:rgba(0,0,0,.35);                   /* dim backdrop */
-  backdrop-filter:blur(1.5px);
+  position:fixed; inset:0; z-index:4000;
+  display:none; align-items:flex-start; justify-content:center;
+  padding-top:calc(4em + 16px);
+  background:rgba(0,0,0,.35); backdrop-filter:blur(1.5px);
 }
-#fxConfirm.on{ display:flex; }                  /* show when .on */
-
+#fxConfirm.on{ display:flex; }
 #fxConfirm .panel{
   width:min(440px,92vw);
   background:linear-gradient(180deg,#0e0e10 0%, #141418 55%, #1a1a1f 100%) !important;
-  color:#e7eaf0;
-  border:1px solid #2a2a2f;
-  border-radius:14px;
+  color:#e7eaf0; border:1px solid #2a2a2f; border-radius:14px;
   box-shadow:0 28px 80px rgba(0,0,0,.65), inset 0 0 0 1px rgba(255,255,255,.03);
-  overflow:hidden;
-  animation:fx-drop .28s ease-out both;         /* slight drop-in */
+  overflow:hidden; animation:fx-drop .28s ease-out both;
 }
-
-#fxConfirm .hd{
-  padding:12px 16px; font-weight:800; letter-spacing:.02em;
-  background:linear-gradient(180deg,#101014 0%, #15151a 100%) !important;
-  border-bottom:1px solid #2a2a2f;
-}
+#fxConfirm .hd{ padding:12px 16px; font-weight:800; letter-spacing:.02em; background:linear-gradient(180deg,#101014 0%, #15151a 100%) !important; border-bottom:1px solid #2a2a2f; }
 #fxConfirm .msg{ padding:16px; font-size:1.05rem }
-#fxConfirm .bar{
-  padding:12px 14px; display:flex; gap:10px; justify-content:flex-end;
-  background:rgba(20,20,24,.65);
-  border-top:1px solid #2a2a2f;
-}
-.fxbtn{
-  border:0; padding:.6rem 1.1rem; border-radius:10px; font-weight:800; cursor:pointer;
-  box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .1s ease, box-shadow .2s ease;
-}
-.fxbtn.ok{ background:#0ba97b; color:#fff }      /* keep OK green */
-.fxbtn.cancel{ background:#2b2b35; color:#e5e8f0 }/* gray, not blue */
+#fxConfirm .bar{ padding:12px 14px; display:flex; gap:10px; justify-content:flex-end; background:rgba(20,20,24,.65); border-top:1px solid #2a2a2f; }
+.fxbtn{ border:0; padding:.6rem 1.1rem; border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .1s ease, box-shadow .2s ease; }
+.fxbtn.ok{ background:#0ba97b; color:#fff }
+.fxbtn.cancel{ background:#2b2b35; color:#e5e8f0 }
 .fxbtn:hover{ transform:translateY(-2px); box-shadow:0 10px 22px rgba(0,0,0,.45) }
 .fxbtn:active{ transform:translateY(0) }
+@keyframes fx-drop{ from{ transform:translateY(-20px); opacity:0 } to{ transform:translateY(0); opacity:1 } }
 
-@keyframes fx-drop{
-  from{ transform:translateY(-20px); opacity:0 }
-  to  { transform:translateY(0);     opacity:1 }
-}
+/* ======= In-dashboard loading overlay (for fetch) ======= */
+#loading{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.35); backdrop-filter:blur(1px); z-index:3500; }
+#loading.on{ display:flex; }
+#loading .ring{ width:64px; height:64px; border:6px solid #fff; border-color:#fff transparent #fff transparent; border-radius:50%; animation:ring 1.2s linear infinite; }
+@keyframes ring{ to{ transform:rotate(360deg) } }
 </style>
 </head>
 <body>
@@ -759,7 +662,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
       <thead>
         <tr>
           <th id="th_script"  class="sortable" data-key="name"   style="min-width:280px">Script</th>
-          <th id="th_cmd"     style="min-width:120px">CMD</th>
+          <th id="th_pid"     class="sortable" data-key="pid">PID</th>
           <th id="th_cpu"     class="sortable" data-key="cpu">CPU%</th>
           <th id="th_ram"     class="sortable" data-key="mem">RAM%</th>
           <th id="th_uptime"  class="sortable" data-key="uptime">Uptime</th>
@@ -779,6 +682,9 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 <!-- Toasts -->
 <div id="toast" class="toast"></div>
 
+<!-- In-dashboard loading overlay -->
+<div id="loading" aria-hidden="true"><div class="ring"></div></div>
+
 <!-- Logs dialog -->
 <dialog id="logDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;">
   <header style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #3b3b3b">
@@ -791,19 +697,26 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   <div id="logBox" style="padding:12px;background:#0b0b0b;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:65vh;overflow:auto"></div>
 </dialog>
 
-<!-- CMD dialog -->
-<dialog id="cmdDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;">
+<!-- CMD terminal dialog (NEW) -->
+<dialog id="cmdDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;max-width:min(900px,95vw);width:95vw;">
   <header style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #3b3b3b">
     <strong id="cmdTitle">CMD</strong>
     <div>
-      <button class="fx-btn secondary btn-animated" id="copyCmd">Copy</button>
+      <button class="fx-btn secondary btn-animated" id="cmdCopy">Copy</button>
       <button class="fx-btn btn-animated" id="closeCmd">Close</button>
     </div>
   </header>
-  <pre id="cmdBox" style="padding:12px;background:#0b0b0b;color:#e8e8e8;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:65vh;overflow:auto"></pre>
+  <div style="display:grid;grid-template-rows:auto 1fr auto;gap:8px;max-height:65vh;">
+    <pre id="cmdBox" style="margin:0;padding:12px;background:#0b0b0b;color:#e8e8e8;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;overflow:auto;border-radius:8px;min-height:220px;"></pre>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input id="cmdInput" placeholder="Type command and press Enter…" style="flex:1;background:#141414;color:#e8e8e8;border:1px solid #3b3b3b;border-radius:8px;padding:10px 12px;">
+      <button class="fx-btn ok btn-animated" id="cmdSend">Send</button>
+      <button class="fx-btn warn btn-animated" id="cmdCtrlC">Ctrl-C</button>
+    </div>
+  </div>
 </dialog>
 
-<!-- Confirm modal (top drop, themed) -->
+<!-- Confirm modal -->
 <div id="fxConfirm" aria-hidden="true">
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="fxConfirmTitle">
     <div class="hd" id="fxConfirmTitle">Fixline says 📣</div>
@@ -820,7 +733,12 @@ const AUTH_KEY='fixline_auth';
 if(!localStorage.getItem(AUTH_KEY)){ location.href='login.html'; }
 
 function powerMenu(){ const m=document.getElementById('powerMenu'); m.style.display = (m.style.display==="block")?"none":"block"; }
-function logout(){ localStorage.removeItem(AUTH_KEY); location.href='login.html'; }
+/* Logout now notifies the parent wrapper to switch back to login */
+function logout(){
+  localStorage.removeItem(AUTH_KEY);
+  try{ window.parent?.postMessage?.({type:'FIXLINE_LOGOUT'}, '*'); }catch(e){}
+  location.href='login.html';
+}
 function reboot(){ notifyWarn('Reboot requested. (Hook your backend if needed)'); }
 function poweroff(){ notifyError('Power off requested. (Hook your backend if needed)'); }
 function sideNav(){ const m=document.getElementById('sideNav'); m.style.display = (m.style.display==="block")?"none":"block"; }
@@ -834,7 +752,7 @@ function options(){ const m=document.getElementById('options'); m.style.display 
   tick(); setInterval(tick,1000);
 })();
 
-/* ===== Toasts (login-style) ===== */
+/* ===== Toasts ===== */
 function addToast(variant, text){
   const tray=document.getElementById('toast');
   const n=document.createElement('div');
@@ -909,7 +827,7 @@ const I18N = {
     phToken: "Token (Bearer or ?token=)",
     phFilter: "Filter scripts… (type)",
     intervalOptions: { "0":"Auto-refresh: Off","1000":"Auto-refresh: 1s","2000":"Auto-refresh: 2s","5000":"Auto-refresh: 5s","10000":"Auto-refresh: 10s","30000":"Auto-refresh: 30s" },
-    thScript:"Script", thCmd:"CMD", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
+    thScript:"Script", thPID:"PID", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
     nodata:'No data yet. Click <b>Connect</b>.',
     liveTime:"Live time"
   },
@@ -925,7 +843,7 @@ const I18N = {
     phToken: "令牌（Bearer 或 ?token=）",
     phFilter: "过滤脚本…（输入类型）",
     intervalOptions: { "0":"自动刷新：关闭","1000":"自动刷新：1秒","2000":"自动刷新：2秒","5000":"自动刷新：5秒","10000":"自动刷新：10秒","30000":"自动刷新：30秒" },
-    thScript:"脚本", thCmd:"命令", thCPU:"CPU%", thRAM:"内存%", thUptime:"运行时长", thStatus:"状态", thActions:"操作",
+    thScript:"脚本", thPID:"PID", thCPU:"CPU%", thRAM:"内存%", thUptime:"运行时长", thStatus:"状态", thActions:"操作",
     nodata:'暂无数据。请点击 <b>连接</b>。',
     liveTime:"实时时间"
   }
@@ -960,17 +878,15 @@ function applyLang(){
   $id('filter').placeholder = S.phFilter;
 
   const sel = $id('interval');
-  Array.from(sel.options).forEach(o => {
-    if (S.intervalOptions[o.value]!==undefined) o.textContent = S.intervalOptions[o.value];
-  });
+  Array.from(sel.options).forEach(o => { if (S.intervalOptions[o.value]!==undefined) o.textContent = S.intervalOptions[o.value]; });
 
   $id('th_script').textContent  = S.thScript;
+  $id('th_pid').textContent     = S.thPID;
   $id('th_cpu').textContent     = S.thCPU;
   $id('th_ram').textContent     = S.thRAM;
   $id('th_uptime').textContent  = S.thUptime;
   $id('th_status').textContent  = S.thStatus;
   $id('th_actions').textContent = S.thActions;
-  const thcmd = $id('th_cmd'); if (thcmd) thcmd.textContent = (S.thCmd || 'CMD');
 
   const ll = $id('i_livetime_label'); if (ll) ll.textContent = S.liveTime;
 
@@ -991,10 +907,7 @@ function toggleLangOpen(open){
 }
 langToggle.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLangOpen(); });
 document.addEventListener('click', (e)=>{ if(!langRoot.contains(e.target)) toggleLangOpen(false); });
-
-document.querySelectorAll('.lang-item').forEach(btn=>{
-  btn.addEventListener('click', ()=>{ setLang(btn.dataset.lang); toggleLangOpen(false); });
-});
+document.querySelectorAll('.lang-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ setLang(btn.dataset.lang); toggleLangOpen(false); }); });
 
 let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
@@ -1019,10 +932,7 @@ function fxConfirm(message){
       document.removeEventListener('keydown', onKey);
       resolve(val);
     };
-    const onKey = (e)=>{
-      if(e.key==='Escape') done(false);
-      if(e.key==='Enter')  done(true);
-    };
+    const onKey = (e)=>{ if(e.key==='Escape') done(false); if(e.key==='Enter')  done(true); };
     ok.onclick = ()=>done(true);
     no.onclick = ()=>done(false);
     document.addEventListener('keydown', onKey);
@@ -1071,11 +981,7 @@ function renderRows(rows){
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td><strong>${x.name}</strong><div style="opacity:.7; font-size:12px;">${x.path??''}</div></td>
-      <td>
-        <button class="fx-btn secondary btn-animated"
-                data-cmd="${x.id}" data-name="${x.name}"
-                title="${(x.cmd||x.command||'View command').toString().replace(/"/g,'&quot;')}">CMD</button>
-      </td>
+      <td>${x.pid??'—'}${x.adopted?' <small style="opacity:.7">(adopted)</small>':''}</td>
       <td class="pct" style="--w:${cpu}%"><span>${cpu.toFixed(1)}</span></td>
       <td class="pct" style="--w:${mem}%"><span>${mem.toFixed(1)}</span></td>
       <td>${fmtUptime(x.uptime||0)}</td>
@@ -1085,24 +991,16 @@ function renderRows(rows){
         <button class="fx-btn warn btn-animated" data-restart="${x.id}" data-name="${x.name}">Restart</button>
         <button class="fx-btn danger btn-animated" data-stop="${x.id}" data-name="${x.name}">Stop</button>
         <button class="fx-btn secondary btn-animated" data-logs="${x.id}" data-name="${x.name}">Logs</button>
+        <button class="fx-btn ghost btn-animated" data-cmd="${x.id}" data-name="${x.name}">CMD</button>
       </td>`;
     tb.appendChild(tr);
   });
 
-  document.querySelectorAll('[data-start]').forEach(b=>b.onclick=async()=>{
-    if(!(await fxConfirm(`Start "${b.dataset.name}"?`))) return;
-    runCmd('START', b.dataset.start, b.dataset.name);
-  });
-  document.querySelectorAll('[data-restart]').forEach(b=>b.onclick=async()=>{
-    if(!(await fxConfirm(`Restart "${b.dataset.name}"?`))) return;
-    runCmd('RESTART', b.dataset.restart, b.dataset.name);
-  });
-  document.querySelectorAll('[data-stop]').forEach(b=>b.onclick=async()=>{
-    if(!(await fxConfirm(`STOP "${b.dataset.name}"?`))) return;
-    runCmd('STOP', b.dataset.stop, b.dataset.name);
-  });
+  document.querySelectorAll('[data-start]').forEach(b=>b.onclick=async()=>{ if(!(await fxConfirm(`Start "${b.dataset.name}"?`))) return; runCmd('START', b.dataset.start, b.dataset.name); });
+  document.querySelectorAll('[data-restart]').forEach(b=>b.onclick=async()=>{ if(!(await fxConfirm(`Restart "${b.dataset.name}"?`))) return; runCmd('RESTART', b.dataset.restart, b.dataset.name); });
+  document.querySelectorAll('[data-stop]').forEach(b=>b.onclick=async()=>{ if(!(await fxConfirm(`STOP "${b.dataset.name}"?`))) return; runCmd('STOP', b.dataset.stop, b.dataset.name); });
   document.querySelectorAll('[data-logs]').forEach(b=>b.onclick=()=> openLogs(b.dataset.logs, b.dataset.name));
-  document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=> openCmd(b.dataset.cmd, b.dataset.name));
+  document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=> openCmd(b.dataset.cmd, b.dataset.name)); /* NEW */
 
   applySortIndicators();
 }
@@ -1158,64 +1056,63 @@ function openLogs(id, name){
   ws.onerror   = ()=> notifyError('Log stream error');
 }
 
-/* ====== CMD helpers ====== */
-async function apiGet(path){
-  const A = getApi(); if(!A) throw new Error('no-base');
-  const build = (useQueryToken=false) => {
-    const url = A.base + path + (useQueryToken ? (path.includes('?')?'&':'?') + 'token=' + encodeURIComponent(A.tk) : '');
-    const headers = useQueryToken ? {} : { 'Authorization':'Bearer '+A.tk };
-    return { url, opt:{ method:'GET', headers, mode:'cors', cache:'no-store' } };
-  };
-  try{
-    const {url,opt} = build(false); const r = await fetch(url,opt);
-    if(!r.ok) throw new Error((await r.text())||r.statusText);
-    const text = await r.text();
-    try { return JSON.parse(text); } catch { return text; }
-  }catch(err){
-    const {url,opt} = build(true); const r2 = await fetch(url,opt);
-    if(!r2.ok) throw new Error((await r2.text())||r2.statusText);
-    const text = await r2.text();
-    try { return JSON.parse(text); } catch { return text; }
-  }
-}
-
-async function fetchCmdLine(id, inlineFromOverview){
-  if (inlineFromOverview && inlineFromOverview.trim()) return inlineFromOverview;
-  const tries = [
-    `/api/cmd/${encodeURIComponent(id)}`,
-    `/api/command/${encodeURIComponent(id)}`,
-    `/api/process/${encodeURIComponent(id)}/cmdline`
-  ];
-  for(const p of tries){
-    try{
-      const r = await apiGet(p);
-      if (!r) continue;
-      if (typeof r === 'string') return r;
-      if (r.cmd) return r.cmd;
-      if (r.cmdline) return r.cmdline;
-      if (r.command) return r.command;
-    }catch{}
-  }
-  return '';
-}
-
+/* ===== CMD terminal (NEW) ===== */
+let _cmdWS = null;
 function openCmd(id, name){
-  const dlg = document.getElementById('cmdDlg');
-  const box = document.getElementById('cmdBox');
+  const base = (document.getElementById('base')?.value || '').trim();
+  const tk   = (document.getElementById('token')?.value || '').trim();
+  if (!base){ notifyWarn('Set Base URL first.'); return; }
+
+  let wsUrl;
+  try {
+    const u = new URL(base);
+    wsUrl = (u.protocol==='https:'?'wss://':'ws://') + u.host + '/api/cmd/' + encodeURIComponent(id) + '?token=' + encodeURIComponent(tk);
+  } catch {
+    wsUrl = (base.startsWith('https')?'wss://':'ws://') + base.replace(/^https?:\/\//,'') + '/api/cmd/' + encodeURIComponent(id) + '?token=' + encodeURIComponent(tk);
+  }
+
+  const dlg   = document.getElementById('cmdDlg');
+  const box   = document.getElementById('cmdBox');
+  const input = document.getElementById('cmdInput');
+
   document.getElementById('cmdTitle').textContent = 'CMD — ' + name;
-  box.textContent = 'Fetching…';
+  box.textContent = 'Connecting…\n';
   dlg.showModal();
-  const row = (currentRows||[]).find(r=>String(r.id)===String(id));
-  const inline = row ? (row.cmd || row.command || '') : '';
-  fetchCmdLine(id, inline).then(cmd=>{
-    box.textContent = cmd || 'No command available.\nBackend can expose it as `cmd` in /api/overview or implement /api/cmd/:id';
-  }).catch(e=>{
-    box.textContent = 'Error: ' + (e?.message || e);
-  });
+
+  if(_cmdWS){ try{ _cmdWS.close(); }catch{} _cmdWS=null; }
+
+  const ws = new WebSocket(wsUrl); _cmdWS = ws;
+  const scroll = () => { box.scrollTop = box.scrollHeight; };
+
+  ws.onopen    = () => { box.textContent += 'Connected.\n$ '; scroll(); input.focus(); };
+  ws.onmessage = (e)  => { box.textContent += (e.data||''); scroll(); };
+  ws.onerror   = ()   => { notifyError('CMD connection error'); };
+  ws.onclose   = ()   => { box.textContent += '\n[connection closed]\n'; scroll(); };
 }
 
-document.getElementById('copyCmd').onclick  = ()=>{ navigator.clipboard.writeText(document.getElementById('cmdBox').textContent||''); notifySuccess('Copied.'); };
-document.getElementById('closeCmd').onclick = ()=> document.getElementById('cmdDlg').close();
+function sendCmd(){
+  const el  = document.getElementById('cmdInput');
+  const val = el.value;
+  if(!val) return;
+  try{
+    if(_cmdWS?.readyState === 1){
+      try{ _cmdWS.send(JSON.stringify({cmd: val})); } catch { _cmdWS.send(val + '\n'); }
+    } else {
+      notifyWarn('Not connected.');
+    }
+  }catch{}
+  const box = document.getElementById('cmdBox');
+  box.textContent += val + '\n';
+  box.scrollTop = box.scrollHeight;
+  el.value = '';
+}
+
+/* CMD dialog controls */
+document.getElementById('cmdSend').onclick   = sendCmd;
+document.getElementById('cmdCopy').onclick   = ()=>{ navigator.clipboard.writeText(document.getElementById('cmdBox').textContent||''); notifySuccess('Copied.'); };
+document.getElementById('cmdCtrlC').onclick  = ()=>{ try{ _cmdWS?.send?.(JSON.stringify({signal:'SIGINT'})); }catch{} };
+document.getElementById('closeCmd').onclick  = ()=>{ try{ _cmdWS?.close(); }catch{}; document.getElementById('cmdDlg').close(); };
+document.getElementById('cmdInput').addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); sendCmd(); } });
 
 async function restartAll(){
   try{
@@ -1257,42 +1154,20 @@ document.getElementById('connect').onclick = ()=>{
 };
 document.getElementById('refresh').onclick = ()=> loadOverview();
 
-document.getElementById('restartAll').onclick = async ()=>{
-  if(!(await fxConfirm('Restart ALL scripts?'))) return;
-  await restartAll();
-};
-document.getElementById('stopAll').onclick = async ()=>{
-  if(!(await fxConfirm('STOP ALL scripts?'))) return;
-  await stopAll();
-};
-document.getElementById('adopt').onclick = async (e)=>{
-  const enable=!e.altKey;
-  const msg = enable ? 'Enable Auto Running for ALL?' : 'Disable Auto Running for ALL?';
-  if(!(await fxConfirm(msg))) return;
-  await toggleAutoAll(enable);
-};
+document.getElementById('restartAll').onclick = async ()=>{ if(!(await fxConfirm('Restart ALL scripts?'))) return; await restartAll(); };
+document.getElementById('stopAll').onclick   = async ()=>{ if(!(await fxConfirm('STOP ALL scripts?'))) return; await stopAll(); };
+document.getElementById('adopt').onclick     = async (e)=>{ const enable=!e.altKey; const msg = enable ? 'Enable Auto Running for ALL?' : 'Disable Auto Running for ALL?'; if(!(await fxConfirm(msg))) return; await toggleAutoAll(enable); };
 
-document.getElementById('copyCurl').onclick = ()=>{
-  const base = (document.getElementById('base')?.value || '').trim();
-  const u = base ? (base.replace(/\/+$/,'') + '/api/overview') : location.href;
-  navigator.clipboard.writeText(u); notifySuccess('Data URL copied.');
-};
-document.getElementById('copyLog').onclick = ()=>{ navigator.clipboard.writeText(document.getElementById('logBox').textContent||''); notifySuccess('Copied.'); };
+document.getElementById('copyCurl').onclick = ()=>{ const base = (document.getElementById('base')?.value || '').trim(); const u = base ? (base.replace(/\/+$/,'') + '/api/overview') : location.href; navigator.clipboard.writeText(u); notifySuccess('Data URL copied.'); };
+document.getElementById('copyLog').onclick  = ()=>{ navigator.clipboard.writeText(document.getElementById('logBox').textContent||''); notifySuccess('Copied.'); };
 document.getElementById('closeLog').onclick = ()=> document.getElementById('logDlg').close();
 document.getElementById('filter').addEventListener('input', ()=> renderRows(currentRows));
 
 document.querySelectorAll('th.sortable').forEach(th=>{
-  th.addEventListener('click', ()=>{
-    const k = th.dataset.key;
-    if (sortKey===k){ sortDir*=-1; } else { sortKey=k; sortDir=1; }
-    renderRows(currentRows);
-  });
+  th.addEventListener('click', ()=>{ const k = th.dataset.key; if (sortKey===k){ sortDir*=-1; } else { sortKey=k; sortDir=1; } renderRows(currentRows); });
 });
 
-document.addEventListener('keydown', (e)=>{
-  if (e.key.toLowerCase()==='r'){ loadOverview(); }
-  if (e.key==='/'){ e.preventDefault(); document.getElementById('filter').focus(); }
-});
+document.addEventListener('keydown', (e)=>{ if (e.key.toLowerCase()==='r'){ loadOverview(); } if (e.key==='/'){ e.preventDefault(); document.getElementById('filter').focus(); } });
 
 function setupAuto(){
   if(timer) clearInterval(timer);
@@ -1336,6 +1211,20 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     loginFrame.style.display='none';
     dashFrame.style.display='block';
   }
+
+  /* Listen for logout request from dashboard iframe */
+  window.addEventListener('message', (ev)=>{
+    if (ev?.data?.type === 'FIXLINE_LOGOUT'){
+      try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
+      showLoader(600, ()=>{
+        dashFrame.style.display='none';
+        loginFrame.style.display='block';
+        loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
+        dashFrame.removeAttribute('data-loaded');
+        dashFrame.srcdoc = '';
+      });
+    }
+  });
 
   loginFrame.addEventListener('load', () => {
     try{
