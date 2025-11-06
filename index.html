@@ -550,6 +550,18 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 #loading .ring{ width:64px; height:64px; border:6px solid #fff; border-color:#fff transparent #fff transparent; border-radius:50%; animation:ring 1.2s linear infinite; }
 @keyframes ring{ to{ transform:rotate(360deg) } }
 </style>
+
+<!-- ========= E1.server defaults (prefill Base/Token) ========= -->
+<script>
+  window.API_BASE_DEFAULT = "https://e1.your-host.ts.net";  // << EDIT ME
+  window.TOKEN_DEFAULT    = "YOUR_E1_TOKEN";                // << EDIT ME
+  document.addEventListener("DOMContentLoaded", () => {
+    const b = document.getElementById("base");
+    const t = document.getElementById("token");
+    if (b && !b.value) b.value = localStorage.getItem('fx_base') || window.API_BASE_DEFAULT || "";
+    if (t && !t.value) t.value = localStorage.getItem('fx_token') || window.TOKEN_DEFAULT || "";
+  });
+</script>
 </head>
 <body>
 
@@ -802,7 +814,7 @@ const I18N = {
     agentConnection: "Agent Connection",
     kTotal: "Total Scripts", kRunning: "Running", kStalled: "Stalled", kExited: "Exited",
     actionsTitle: "IMPORTANT ACTIONS",
-    btnAutoRunning: "Auto Running", btnRestartAll: "Restart All", btnStopAll: "Stop All",
+    btnAutoRunning: "Auto Running", btnRestartAll: "Restart All", btnStop All: "Stop All",
     btnCopyUrl: "Copy Data URL", btnConnect: "Connect", btnRefresh: "Refresh",
     phBase: "API Base URL (e.g. https://win-xxxx.ts.net)",
     phToken: "Token (Bearer or ?token=)",
@@ -818,7 +830,7 @@ const I18N = {
     agentConnection: "代理连接",
     kTotal: "脚本总数", kRunning: "运行中", kStalled: "卡住", kExited: "已退出",
     actionsTitle: "重要操作",
-    btnAutoRunning: "自动运行", btnRestartAll: "全部重启", btnStopAll: "全部停止",
+    btnAutoRunning: "自动运行", btnRestartAll: "全部重启", btnStop All: "全部停止",
     btnCopyUrl: "复制数据地址", btnConnect: "连接", btnRefresh: "刷新",
     phBase: "API 基础地址（如 https://win-xxxx.ts.net）",
     phToken: "令牌（Bearer 或 ?token=）",
@@ -849,7 +861,7 @@ function applyLang(){
 
   $id('adopt').textContent      = S.btnAutoRunning;
   $id('restartAll').textContent = S.btnRestartAll;
-  $id('stopAll').textContent    = S.btnStopAll;
+  $id('stopAll').textContent    = S.btnStop All;
   $id('copyCurl').textContent   = S.btnCopyUrl;
   $id('connect').textContent    = S.btnConnect;
   $id('refresh').textContent    = S.btnRefresh;
@@ -999,14 +1011,23 @@ function loadOverview(){
     .finally(()=> showLoading(false));
 }
 
+/* === preflight-free POST (no headers, no body) === */
+function postNoPreflight(path){
+  const A = getApi(); if(!A) return Promise.reject(new Error('no-base'));
+  const url = A.base + path + (path.includes('?')?'&':'?') + 'token=' + encodeURIComponent(A.tk);
+  return fetch(url, { method:'POST', mode:'cors', cache:'no-store' });
+}
+
 function runCmd(action, id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   if (!base){ notifyWarn('Set Base URL first.'); return; }
   (async () => {
     try{
-      if (action==='START'){ await apiPost('/api/start/' + encodeURIComponent(id)); }
-      else if (action==='STOP'){ await apiPost('/api/stop/' + encodeURIComponent(id)); }
-      else if (action==='RESTART'){ await apiPost('/api/restart/' + encodeURIComponent(id)); }
+      let r;
+      if (action==='START'){ r = await postNoPreflight('/api/start/' + encodeURIComponent(id)); }
+      else if (action==='STOP'){ r = await postNoPreflight('/api/stop/' + encodeURIComponent(id)); }
+      else if (action==='RESTART'){ r = await postNoPreflight('/api/restart/' + encodeURIComponent(id)); }
+      if (!r || !r.ok) throw new Error(r ? 'HTTP '+r.status : 'no response');
       notifySuccess(`${action} sent for "${name}".`);
       loadOverview();
     }catch(e){ notifyError('Command failed: ' + (e?.message || e)); }
@@ -1037,19 +1058,19 @@ function openLogs(id, name){
 
 async function restartAll(){
   try{
-    let r;
-    try { r = await apiPost('/api/restart-all'); }
-    catch(e){ if(String(e).includes('404')) r = await apiPost('/api/restart_all'); else throw e; }
-    notifySuccess(`Restarted ${r.ok} script(s).` + (r.fail ? ` ${r.fail} failed.` : ''));
+    let r = await postNoPreflight('/api/restart-all').catch(()=>null);
+    if (!r || r.status===404) r = await postNoPreflight('/api/restart_all');
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    notifySuccess(`Restart-all triggered.`);
     setTimeout(()=>loadOverview(), 600);
   }catch(e){ notifyError('Restart-all failed: ' + e.message); }
 }
 async function stopAll(){
   try{
-    let r;
-    try { r = await apiPost('/api/stop-all'); }
-    catch(e){ if(String(e).includes('404')) r = await apiPost('/api/stop_all'); else throw e; }
-    notifySuccess(`Stopped ${r.ok} script(s).` + (r.fail ? ` ${r.fail} failed.` : ''));
+    let r = await postNoPreflight('/api/stop-all').catch(()=>null);
+    if (!r || r.status===404) r = await postNoPreflight('/api/stop_all');
+    if (!r.ok) throw new Error('HTTP '+r.status);
+    notifySuccess(`Stop-all triggered.`);
     setTimeout(()=>loadOverview(), 600);
   }catch(e){ notifyError('Stop-all failed: ' + e.message); }
 }
@@ -1099,12 +1120,15 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 
 (function boot(){
   const b = localStorage.getItem(LS_BASE)||''; const t = localStorage.getItem(LS_TOKEN)||''; const iv = localStorage.getItem(LS_INT)||'0';
-  if(document.getElementById('base')) document.getElementById('base').value = b;
-  if(document.getElementById('token')) document.getElementById('token').value = t;
+  if(document.getElementById('base') && !document.getElementById('base').value) document.getElementById('base').value = b || (window.API_BASE_DEFAULT||'');
+  if(document.getElementById('token') && !document.getElementById('token').value) document.getElementById('token').value = t || (window.TOKEN_DEFAULT||'');
   if(document.getElementById('interval')) document.getElementById('interval').value = iv;
   applyLang();
-  if (b && t) { loadOverview().catch(()=>{}); setupAuto(); }
+  if ((document.getElementById('base').value||'') && (document.getElementById('token').value||'')) { loadOverview().catch(()=>{}); setupAuto(); }
 })();
+
+/* Optional: expose a tiny public API (like your 2nd HTML) */
+window.FixlineRemote = { runCmd, openLogs, restartAll, stopAll, apiPost, postNoPreflight };
 </script>
 </body>
 </html>
