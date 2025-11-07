@@ -1051,7 +1051,7 @@ function openCmd(id, name){
   const makeWS = (pathWithQuery='')=>{
     try{
       const u = new URL(base);
-      const proto = (u.protocol==='https:') ? 'wss://' : 'ws://';
+      const proto = (u.protocol === 'https:') ? 'wss://' : 'ws://';
       return proto + u.host + pathWithQuery;
     }catch{
       const host = base.replace(/^https?:\/\//,'');
@@ -1060,64 +1060,74 @@ function openCmd(id, name){
     }
   };
 
-  const tries = [
-    makeWS('/api/cmd/'  + encodeURIComponent(id) + (tk?('?token='+encodeURIComponent(tk)) : '')),
+  const endpoints = [
+    makeWS('/api/cmd/'  + encodeURIComponent(id) + (tk ? ('?token=' + encodeURIComponent(tk)) : '')),
     makeWS('/api/cmd/'  + encodeURIComponent(id)),
-    makeWS('/api/logs/' + encodeURIComponent(id) + (tk?('?token='+encodeURIComponent(tk)) : '')),
+    makeWS('/api/logs/' + encodeURIComponent(id) + (tk ? ('?token=' + encodeURIComponent(tk)) : '')),
   ];
 
   const title = document.getElementById('cmdTitle');
   const box   = document.getElementById('cmdBox');
-
   title.textContent = 'CMD — ' + name;
   box.textContent   = 'Connecting…\n';
   document.getElementById('cmdDlg').showModal();
 
-  let ws = null, connected = false, usingLogsFallback = false;
+  let ws = null;
+  let connected = false;
+  let attempt = 0;
 
-  const attachHandlers = ()=>{
+  const next = ()=>{
+    attempt++;
+    if (attempt >= endpoints.length){
+      box.textContent += '[connection closed]\n';
+      notifyError('CMD connection error');   // toast only once, after ALL attempts
+      return;
+    }
+    connectAttempt(attempt);
+  };
+
+  const connectAttempt = (idx)=>{
+    const url = endpoints[idx];
+    const usingLogsFallback = (idx === 2);
+    try{
+      ws = new WebSocket(url);
+    }catch(_){
+      return next();
+    }
+
     ws.onopen = ()=>{
       connected = true;
-      box.textContent += usingLogsFallback ? '[connected to LOGS fallback — read-only]\n' : '[connected]\n';
+      box.textContent += usingLogsFallback
+        ? '[connected to LOGS fallback — read-only]\n'
+        : '[connected]\n';
     };
+
     ws.onmessage = (e)=>{
       box.textContent += (e.data ?? '') + '\n';
       box.scrollTop = box.scrollHeight;
     };
-    ws.onerror = ()=>{
-      if (!connected) notifyError('CMD connection error');
-    };
+
+    // swallow intermediate errors; we'll notify only if all attempts fail
+    ws.onerror = ()=>{ /* no-op until final fail */ };
+
     ws.onclose = ()=>{
-      if (!connected){
-        nextTry();
-      }else{
-        box.textContent += '[connection closed]\n';
-      }
+      if (!connected) next();
+      else box.textContent += '[connection closed]\n';
     };
+
+    // 2.5s guard to move on if a server accepts but never opens
+    const guard = setTimeout(()=>{
+      if (!connected && ws && ws.readyState < 2){
+        try{ ws.close(); }catch(_){}
+      }
+    }, 2500);
+    ws.addEventListener('open', ()=> clearTimeout(guard));
   };
 
-  let idx = -1;
-  const nextTry = ()=>{
-    idx++;
-    if (idx >= tries.length){
-      box.textContent += '[connection closed]\n';
-      notifyError('CMD connection error');
-      return;
-    }
-    usingLogsFallback = (idx === 2);
-    try{
-      ws = new WebSocket(tries[idx]);
-      attachHandlers();
-      const guard = setTimeout(()=>{ if (!connected && ws && ws.readyState<2){ try{ ws.close(); }catch{} } }, 2500);
-      ws.addEventListener('open', ()=> clearTimeout(guard));
-    }catch{
-      nextTry();
-    }
-  };
-  nextTry();
+  connectAttempt(0);
 
   document.getElementById('closeCmd').onclick = ()=>{
-    try{ ws && ws.close(); }catch{}
+    try{ ws && ws.close(); }catch(_){}
     document.getElementById('cmdDlg').close();
   };
 }
