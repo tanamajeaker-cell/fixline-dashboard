@@ -898,7 +898,33 @@ document.querySelectorAll('.lang-item').forEach(btn=>{ btn.addEventListener('cli
 
 let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
+/* NEW: track the single active CMD console/socket */
+let currentCmdWs=null, currentCmdId=null, currentCmdName='';
 const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+/* Helper to close current CMD console (dialog + websocket) */
+function closeCmdConsole(){
+  const dlg = document.getElementById('cmdDlg');
+  if (currentCmdWs){
+    try{
+      currentCmdWs.onclose = null;
+      currentCmdWs.onerror = null;
+      currentCmdWs.close();
+    }catch(_){}
+  }
+  currentCmdWs = null;
+  currentCmdId = null;
+  currentCmdName = '';
+  if (dlg && dlg.open) dlg.close();
+}
+
+/* Close only if console belongs to this script */
+function closeCmdFor(id){
+  if (!id) return;
+  if (currentCmdId === id){
+    closeCmdConsole();
+  }
+}
 
 /* ===== Confirm modal helper (top-drop) ===== */
 function fxConfirm(message){
@@ -1006,16 +1032,41 @@ function loadOverview(){
     .finally(()=> showLoading(false));
 }
 
+/* UPDATED: runCmd now also manages CMD console lifecycle */
 function runCmd(action, id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   if (!base){ notifyWarn('Set Base URL first.'); return; }
+
   (async () => {
     try{
-      if (action==='START'){ await apiPost('/api/start/' + encodeURIComponent(id)); }
-      else if (action==='STOP'){ await apiPost('/api/stop/' + encodeURIComponent(id)); }
-      else if (action==='RESTART'){ await apiPost('/api/restart/' + encodeURIComponent(id)); }
-      notifySuccess(`${action} sent for "${name}".`);
-      loadOverview();
+      if (action==='START'){
+        /* When starting, close any existing console and open a fresh one for this script */
+        closeCmdConsole();
+        await apiPost('/api/start/' + encodeURIComponent(id));
+        notifySuccess(`${action} sent for "${name}".`);
+        loadOverview();
+        setTimeout(()=> openCmd(id, name), 500);
+      } else if (action==='STOP'){
+        await apiPost('/api/stop/' + encodeURIComponent(id));
+        notifySuccess(`${action} sent for "${name}".`);
+        loadOverview();
+        /* Close console only if it belongs to this script */
+        closeCmdFor(id);
+      } else if (action==='RESTART'){
+        const hadConsole = (currentCmdId === id);
+        if (hadConsole) closeCmdConsole();
+        await apiPost('/api/restart/' + encodeURIComponent(id));
+        notifySuccess(`${action} sent for "${name}".`);
+        loadOverview();
+        /* If user was watching this script, reopen a fresh console */
+        if (hadConsole){
+          setTimeout(()=> openCmd(id, name), 700);
+        }
+      } else {
+        await apiPost('/api/' + action.toLowerCase() + '/' + encodeURIComponent(id));
+        notifySuccess(`${action} sent for "${name}".`);
+        loadOverview();
+      }
     }catch(e){ notifyError('Command failed: ' + (e?.message || e)); }
   })();
 }
@@ -1043,10 +1094,16 @@ function openLogs(id, name){
 }
 
 /* === CMD dialog (read-only, with logs fallback) === */
+/* UPDATED: now uses global currentCmdWs/currentCmdId and always closes old console first */
 function openCmd(id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
+
+  /* Always close any old console (and its websocket) before opening a new one */
+  closeCmdConsole();
+  currentCmdId   = id;
+  currentCmdName = name || id;
 
   const makeWS = (pathWithQuery='')=>{
     try{
@@ -1080,7 +1137,7 @@ function openCmd(id, name){
     attempt++;
     if (attempt >= endpoints.length){
       box.textContent += '[connection closed]\n';
-      notifyError('CMD connection error');   // toast only once, after ALL attempts
+      notifyError('CMD connection error');
       return;
     }
     connectAttempt(attempt);
@@ -1091,11 +1148,15 @@ function openCmd(id, name){
     const usingLogsFallback = (idx === 2);
     try{
       ws = new WebSocket(url);
+      currentCmdWs = ws;   // track globally
     }catch(_){
       return next();
     }
 
+    const thisWs = ws;
+
     ws.onopen = ()=>{
+      if (currentCmdWs !== thisWs) return; // stale
       connected = true;
       box.textContent += usingLogsFallback
         ? '[connected to LOGS fallback — read-only]\n'
@@ -1103,22 +1164,25 @@ function openCmd(id, name){
     };
 
     ws.onmessage = (e)=>{
+      if (currentCmdWs !== thisWs) return;
       box.textContent += (e.data ?? '') + '\n';
       box.scrollTop = box.scrollHeight;
     };
 
-    // swallow intermediate errors; we'll notify only if all attempts fail
-    ws.onerror = ()=>{ /* no-op until final fail */ };
+    ws.onerror = ()=>{ /* swallow until all attempts fail; we notify in next() */ };
 
     ws.onclose = ()=>{
-      if (!connected) next();
-      else box.textContent += '[connection closed]\n';
+      if (currentCmdWs !== thisWs) return; // already superseded
+      if (!connected){
+        next();
+      } else {
+        box.textContent += '[connection closed]\n';
+      }
     };
 
-    // 2.5s guard to move on if a server accepts but never opens
     const guard = setTimeout(()=>{
-      if (!connected && ws && ws.readyState < 2){
-        try{ ws.close(); }catch(_){}
+      if (currentCmdWs === thisWs && !connected && thisWs.readyState < 2){
+        try{ thisWs.close(); }catch(_){}
       }
     }, 2500);
     ws.addEventListener('open', ()=> clearTimeout(guard));
@@ -1126,23 +1190,35 @@ function openCmd(id, name){
 
   connectAttempt(0);
 
-  document.getElementById('closeCmd').onclick = ()=>{
-    try{ ws && ws.close(); }catch(_){}
-    document.getElementById('cmdDlg').close();
-  };
+  document.getElementById('closeCmd').onclick = ()=>{ closeCmdConsole(); };
 }
 
 async function restartAll(){
   try{
+    /* If user is watching a script, remember it and close its console first */
+    const reopenId   = currentCmdId;
+    const reopenName = currentCmdName;
+    if (reopenId) closeCmdConsole();
+
     let r;
     try { r = await apiPost('/api/restart-all'); }
     catch(e){ if(String(e).includes('404')) r = await apiPost('/api/restart_all'); else throw e; }
+
     notifySuccess(`Restarted ${r.ok} script(s).` + (r.fail ? ` ${r.fail} failed.` : ''));
-    setTimeout(()=>loadOverview(), 600);
+    setTimeout(()=>{
+      loadOverview();
+      /* After Restart All, if there was an active console before, open a fresh one for that script */
+      if (reopenId && reopenName){
+        openCmd(reopenId, reopenName);
+      }
+    }, 600);
   }catch(e){ notifyError('Restart-all failed: ' + e.message); }
 }
 async function stopAll(){
   try{
+    /* Stop All should close any open CMD console */
+    if (currentCmdId) closeCmdConsole();
+
     let r;
     try { r = await apiPost('/api/stop-all'); }
     catch(e){ if(String(e).includes('404')) r = await apiPost('/api/stop_all'); else throw e; }
