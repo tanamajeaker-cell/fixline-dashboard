@@ -57,7 +57,7 @@
   }
   @keyframes fx-orbit4{
     from{ transform:translateY(-50%) rotate(0deg)   translateX(70px) rotate(0deg); }
-    to  { transform:translateY(-50%) rotate(360deg) translateX(70px) rotate(-360deg); }
+    to  { transform:translateY(-50%) rotate(360deg) translateX(70px) rotate(0deg); }
   }
   @keyframes fx-coreGlow{
     0%  { box-shadow:0 0 30px rgba(255,255,255,.5), inset 0 0 20px rgba(255,255,255,.3); }
@@ -187,8 +187,8 @@
       transform:scaleX(0);transform-origin:left;background:linear-gradient(to right,var(--bgX),var(--fgX));
       border-radius:inherit;animation:progress 2.5s .3s linear forwards;opacity:.9;
     }
-    .notification--warning{--bgX:#512e08;--fgX:#ffa536}
-    .notification--info{--bgX:#1a1a2e;--fgX:#8b8bda}
+    .notification--warning{--bg:#512e08;--fg:#ffa536}
+    .notification--info{--bg:#1a1a2e;--fg:#8b8bda}
     @keyframes fade-in{5%{opacity:1;visibility:visible;transform:translateY(0)}95%{opacity:1;transform:translateY(0)}}
     @keyframes progress{to{transform:scaleX(1)}}
   </style>
@@ -898,32 +898,36 @@ document.querySelectorAll('.lang-item').forEach(btn=>{ btn.addEventListener('cli
 
 let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
-/* NEW: track the single active CMD console/socket */
-let currentCmdWs=null, currentCmdId=null, currentCmdName='';
 const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
-/* Helper to close current CMD console (dialog + websocket) */
-function closeCmdConsole(){
-  const dlg = document.getElementById('cmdDlg');
-  if (currentCmdWs){
-    try{
-      currentCmdWs.onclose = null;
-      currentCmdWs.onerror = null;
-      currentCmdWs.close();
-    }catch(_){}
+/* ===== CMD / LOG WebSocket session tracking ===== */
+let activeCmdWs  = null;
+let activeCmdId  = null;
+let activeLogWs  = null;
+let activeLogId  = null;
+
+/* Close helpers so old consoles are always killed (UI + WS) */
+function closeCmdSession(){
+  if (activeCmdWs){
+    try{ activeCmdWs.close(); }catch(e){}
+    activeCmdWs = null;
   }
-  currentCmdWs = null;
-  currentCmdId = null;
-  currentCmdName = '';
+  activeCmdId = null;
+  const dlg = document.getElementById('cmdDlg');
   if (dlg && dlg.open) dlg.close();
 }
-
-/* Close only if console belongs to this script */
-function closeCmdFor(id){
-  if (!id) return;
-  if (currentCmdId === id){
-    closeCmdConsole();
+function closeLogSession(){
+  if (activeLogWs){
+    try{ activeLogWs.close(); }catch(e){}
+    activeLogWs = null;
   }
+  activeLogId = null;
+  const dlg = document.getElementById('logDlg');
+  if (dlg && dlg.open) dlg.close();
+}
+function closeAllConsoles(){
+  closeCmdSession();
+  closeLogSession();
 }
 
 /* ===== Confirm modal helper (top-drop) ===== */
@@ -1032,41 +1036,22 @@ function loadOverview(){
     .finally(()=> showLoading(false));
 }
 
-/* UPDATED: runCmd now also manages CMD console lifecycle */
+/* NOTE: these just tell the agent to stop/restart.
+   The actual killing of Selenium / browser windows must be done in the agent
+   when it handles /api/stop, /api/restart, /api/stop-all, /api/restart-all. */
 function runCmd(action, id, name){
+  // Always close any existing consoles so old CMD/log UIs disappear
+  closeAllConsoles();
+
   const base = (document.getElementById('base')?.value || '').trim();
   if (!base){ notifyWarn('Set Base URL first.'); return; }
-
   (async () => {
     try{
-      if (action==='START'){
-        /* When starting, close any existing console and open a fresh one for this script */
-        closeCmdConsole();
-        await apiPost('/api/start/' + encodeURIComponent(id));
-        notifySuccess(`${action} sent for "${name}".`);
-        loadOverview();
-        setTimeout(()=> openCmd(id, name), 500);
-      } else if (action==='STOP'){
-        await apiPost('/api/stop/' + encodeURIComponent(id));
-        notifySuccess(`${action} sent for "${name}".`);
-        loadOverview();
-        /* Close console only if it belongs to this script */
-        closeCmdFor(id);
-      } else if (action==='RESTART'){
-        const hadConsole = (currentCmdId === id);
-        if (hadConsole) closeCmdConsole();
-        await apiPost('/api/restart/' + encodeURIComponent(id));
-        notifySuccess(`${action} sent for "${name}".`);
-        loadOverview();
-        /* If user was watching this script, reopen a fresh console */
-        if (hadConsole){
-          setTimeout(()=> openCmd(id, name), 700);
-        }
-      } else {
-        await apiPost('/api/' + action.toLowerCase() + '/' + encodeURIComponent(id));
-        notifySuccess(`${action} sent for "${name}".`);
-        loadOverview();
-      }
+      if (action==='START'){ await apiPost('/api/start/' + encodeURIComponent(id)); }
+      else if (action==='STOP'){ await apiPost('/api/stop/' + encodeURIComponent(id)); }
+      else if (action==='RESTART'){ await apiPost('/api/restart/' + encodeURIComponent(id)); }
+      notifySuccess(`${action} sent for "${name}".`);
+      loadOverview();
     }catch(e){ notifyError('Command failed: ' + (e?.message || e)); }
   })();
 }
@@ -1075,6 +1060,10 @@ function openLogs(id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
+
+  // Close previous log session (WS + dialog) before opening a new one
+  closeLogSession();
+  activeLogId = id;
 
   let wsUrl;
   try {
@@ -1089,21 +1078,21 @@ function openLogs(id, name){
   document.getElementById('logDlg').showModal();
 
   const ws = new WebSocket(wsUrl);
+  activeLogWs = ws;
+
   ws.onmessage = (e)=>{ const box=document.getElementById('logBox'); box.textContent += (e.data||'')+'\n'; box.scrollTop = box.scrollHeight; };
   ws.onerror   = ()=> notifyError('Log stream error');
 }
 
 /* === CMD dialog (read-only, with logs fallback) === */
-/* UPDATED: now uses global currentCmdWs/currentCmdId and always closes old console first */
 function openCmd(id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
 
-  /* Always close any old console (and its websocket) before opening a new one */
-  closeCmdConsole();
-  currentCmdId   = id;
-  currentCmdName = name || id;
+  // Close any previous CMD session before opening a new one
+  closeCmdSession();
+  activeCmdId = id;
 
   const makeWS = (pathWithQuery='')=>{
     try{
@@ -1137,7 +1126,7 @@ function openCmd(id, name){
     attempt++;
     if (attempt >= endpoints.length){
       box.textContent += '[connection closed]\n';
-      notifyError('CMD connection error');
+      notifyError('CMD connection error');   // toast only once, after ALL attempts fail
       return;
     }
     connectAttempt(attempt);
@@ -1148,15 +1137,12 @@ function openCmd(id, name){
     const usingLogsFallback = (idx === 2);
     try{
       ws = new WebSocket(url);
-      currentCmdWs = ws;   // track globally
+      activeCmdWs = ws;  // track latest connection globally
     }catch(_){
       return next();
     }
 
-    const thisWs = ws;
-
     ws.onopen = ()=>{
-      if (currentCmdWs !== thisWs) return; // stale
       connected = true;
       box.textContent += usingLogsFallback
         ? '[connected to LOGS fallback — read-only]\n'
@@ -1164,61 +1150,47 @@ function openCmd(id, name){
     };
 
     ws.onmessage = (e)=>{
-      if (currentCmdWs !== thisWs) return;
       box.textContent += (e.data ?? '') + '\n';
       box.scrollTop = box.scrollHeight;
     };
 
-    ws.onerror = ()=>{ /* swallow until all attempts fail; we notify in next() */ };
+    ws.onerror = ()=>{ /* swallow intermediate errors; final error handled in next() */ };
 
     ws.onclose = ()=>{
-      if (currentCmdWs !== thisWs) return; // already superseded
-      if (!connected){
-        next();
-      } else {
-        box.textContent += '[connection closed]\n';
-      }
+      if (!connected) next();
+      else box.textContent += '[connection closed]\n';
     };
 
     const guard = setTimeout(()=>{
-      if (currentCmdWs === thisWs && !connected && thisWs.readyState < 2){
-        try{ thisWs.close(); }catch(_){}
+      if (!connected && ws && ws.readyState < 2){
+        try{ ws.close(); }catch(_){}
       }
     }, 2500);
     ws.addEventListener('open', ()=> clearTimeout(guard));
   };
 
   connectAttempt(0);
-
-  document.getElementById('closeCmd').onclick = ()=>{ closeCmdConsole(); };
 }
 
-async function restartAll(){
-  try{
-    /* If user is watching a script, remember it and close its console first */
-    const reopenId   = currentCmdId;
-    const reopenName = currentCmdName;
-    if (reopenId) closeCmdConsole();
+/* Hook close buttons to close & kill WS as well */
+document.getElementById('closeCmd').onclick = ()=> closeCmdSession();
+document.getElementById('closeLog').onclick = ()=> closeLogSession();
 
+async function restartAll(){
+  // Close all consoles (UI + WS) when doing global restart
+  closeAllConsoles();
+  try{
     let r;
     try { r = await apiPost('/api/restart-all'); }
     catch(e){ if(String(e).includes('404')) r = await apiPost('/api/restart_all'); else throw e; }
-
     notifySuccess(`Restarted ${r.ok} script(s).` + (r.fail ? ` ${r.fail} failed.` : ''));
-    setTimeout(()=>{
-      loadOverview();
-      /* After Restart All, if there was an active console before, open a fresh one for that script */
-      if (reopenId && reopenName){
-        openCmd(reopenId, reopenName);
-      }
-    }, 600);
+    setTimeout(()=>loadOverview(), 600);
   }catch(e){ notifyError('Restart-all failed: ' + e.message); }
 }
 async function stopAll(){
+  // Close all consoles (UI + WS) when doing global stop
+  closeAllConsoles();
   try{
-    /* Stop All should close any open CMD console */
-    if (currentCmdId) closeCmdConsole();
-
     let r;
     try { r = await apiPost('/api/stop-all'); }
     catch(e){ if(String(e).includes('404')) r = await apiPost('/api/stop_all'); else throw e; }
@@ -1254,7 +1226,6 @@ document.getElementById('adopt').onclick     = async (e)=>{ const enable=!e.altK
 
 document.getElementById('copyCurl').onclick = ()=>{ const base = (document.getElementById('base')?.value || '').trim(); const u = base ? (base.replace(/\/+$/,'') + '/api/overview') : location.href; navigator.clipboard.writeText(u); notifySuccess('Data URL copied.'); };
 document.getElementById('copyLog').onclick  = ()=>{ navigator.clipboard.writeText(document.getElementById('logBox').textContent||''); notifySuccess('Copied.'); };
-document.getElementById('closeLog').onclick = ()=> document.getElementById('logDlg').close();
 document.getElementById('filter').addEventListener('input', ()=> renderRows(currentRows));
 
 document.querySelectorAll('th.sortable').forEach(th=>{
