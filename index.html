@@ -67,7 +67,7 @@
 </head>
 <body>
 <div id="stage">
-  <!-- Always show login first in markup; JS decides based on auth -->
+  <!-- Always show login first -->
   <iframe id="loginFrame" class="full"
     sandbox="allow-scripts allow-forms allow-same-origin"
     referrerpolicy="no-referrer" title="FixLine Login"></iframe>
@@ -92,7 +92,7 @@
   </div>
 </div>
 
-<!-- ===== Templates hold your original pages ===== -->
+<!-- ===== Templates hold your original pages UNCHANGED ===== -->
 <template id="loginTpl">
 <!doctype html>
 <html lang="en">
@@ -141,39 +141,32 @@
     .sub{ color:#fff; }
     .form{width:100%;display:flex;flex-direction:column;gap:22px}
     .inputBox{position:relative;width:100%}
-    .inputBox input[type="text"], .inputBox input[type="password"], .inputBox input[type="email"], .inputBox input[type="tel"]{
+    .inputBox input[type="text"], .inputBox input[type="password"]{
       width:100%;background:#333;color:#fff;border:0;outline:0;border-radius:6px;
-      padding:24px 42px 10px 12px;font-size:1rem;font-weight:500; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+      padding:24px 40px 10px 12px;font-size:1rem;font-weight:500; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
     }
     .inputBox i{position:absolute;left:10px;top:10px;font-style:normal;color:var(--muted);transition:.35s}
     .inputBox input:focus + i,.inputBox input:valid + i{transform:translateY(-9px);font-size:.8rem;color:#fff}
 
-    /* password toggle eye */
-    .pwToggle{
+    /* password eye button */
+    .toggle-pass{
       position:absolute;
       right:10px;
       top:50%;
       transform:translateY(-50%);
-      width:28px;
-      height:28px;
-      border-radius:50%;
       border:none;
       background:transparent;
-      color:#ffb3b3;
+      color:var(--muted);
       cursor:pointer;
-      font-size:1.1rem;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      font-size:.95rem;
       padding:0;
     }
-    .pwToggle:hover{
-      background:rgba(255,255,255,.06);
-    }
+    .toggle-pass:hover{color:#fff}
 
     .links{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:.95rem}
     .links a{color:#fff;text-decoration:none;opacity:.9}
-    .links a#forgot:hover{color:#ffb3b3;text-decoration:underline}
+    .links a#forgot{color:#ffb3b3;font-weight:600}
+    .links a#forgot:hover{color:#ffd0d0;text-decoration:underline}
     .remember{display:inline-flex;align-items:center;gap:8px;color:#ddd;user-select:none}
     .remember input{accent-color:var(--accent)}
     /* voltage button */
@@ -212,8 +205,7 @@
       border-radius:inherit;animation:progress 2.5s .3s linear forwards;opacity:.9;
     }
     .notification--warning{--bgX:#512e08;--fgX:#ffa536}
-    /* brighter colorful info toast for "Contact to BA Support" */
-    .notification--info{--bgX:#2b0b3a;--fgX:#ffb7ff}
+    .notification--info{--bgX:#111827;--fgX:#38bdf8}
     @keyframes fade-in{5%{opacity:1;visibility:visible;transform:translateY(0)}95%{opacity:1;transform:translateY(0)}}
     @keyframes progress{to{transform:scaleX(1)}}
   </style>
@@ -238,7 +230,7 @@
         <div class="inputBox">
           <input id="pass" type="password" name="password" required>
           <i>🔑 Password</i>
-          <button type="button" id="pwToggle" class="pwToggle" aria-label="Show password">👁</button>
+          <button type="button" id="togglePass" class="toggle-pass" aria-label="Show password">👁️</button>
         </div>
 
         <div class="links">
@@ -305,55 +297,29 @@
       n.innerHTML=`<div class="notification__body">${text}</div><div class="notification__progress"></div>`;
       wrap.appendChild(n); setTimeout(()=>n.remove(),3200);
     }
-    document.getElementById('forgot').addEventListener('click',e=>{ e.preventDefault(); toast('info','Contact to BA Support'); });
+    document.getElementById('forgot').addEventListener('click',e=>{
+      e.preventDefault();
+      toast('info','✨ Contact to <b>BA Support</b> for password help.');
+    });
 
     document.querySelectorAll('.voltage-button').forEach(wrap=>{
       const btn=wrap.querySelector('button');
       btn.addEventListener('click',()=>{wrap.classList.add('play');setTimeout(()=>wrap.classList.remove('play'),900)});
     });
 
-    /* Remember-me localStorage keys */
-    const RM_USER_KEY='fixline_rm_user';
-    const RM_PASS_KEY='fixline_rm_pass';
-    const RM_FLAG_KEY='fixline_rm_flag';
-
-    // Prefill remembered credentials, if any
-    (function initRemember(){
-      try{
-        const u=localStorage.getItem(RM_USER_KEY)||'';
-        const p=localStorage.getItem(RM_PASS_KEY)||'';
-        const flag=localStorage.getItem(RM_FLAG_KEY)==='1';
-        const uEl=document.getElementById('user');
-        const pEl=document.getElementById('pass');
-        const chk=document.getElementById('remember');
-        if(u && uEl){uEl.value=u;}
-        if(p && pEl){pEl.value=p;}
-        if(flag && chk){chk.checked=true;}
-      }catch(e){}
-    })();
-
     // Password eye toggle
     (function(){
-      const pass=document.getElementById('pass');
-      const toggle=document.getElementById('pwToggle');
-      if(!pass || !toggle) return;
-      const apply=()=>{
-        if(pass.type==='password'){
-          toggle.textContent='👁';
-          toggle.setAttribute('aria-label','Show password');
-        }else{
-          toggle.textContent='🙈';
-          toggle.setAttribute('aria-label','Hide password');
-        }
-      };
-      apply();
-      toggle.addEventListener('click',()=>{
-        pass.type = (pass.type==='password') ? 'text' : 'password';
-        apply();
-        pass.focus();
+      const pass = document.getElementById('pass');
+      const btn  = document.getElementById('togglePass');
+      if(!pass || !btn) return;
+      btn.addEventListener('click', ()=>{
+        const isPw = pass.type === 'password';
+        pass.type  = isPw ? 'text' : 'password';
+        btn.textContent = isPw ? '🙈' : '👁️';
       });
     })();
 
+    // Original in-frame submit (parent wrapper will override with capture)
     document.getElementById('loginForm').addEventListener('submit',e=>{
       e.preventDefault();
       const wrap=document.getElementById('vbtn');
@@ -362,7 +328,6 @@
       const u=document.getElementById('user').value.trim();
       const p=document.getElementById('pass').value;
       if(u==='admin' && p==='Fixline@123'){
-        // This redirect is overridden by outer wrapper, but keep as fallback.
         location.href='index.html';
       }else{
         toast('warning','Invalid username or password. ⚠️');
@@ -769,7 +734,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 <!-- CMD dialog (read-only stream) -->
 <dialog id="cmdDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;">
   <header style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #3b3b3b">
-    <strong id="cmdTitle">View</strong>
+    <strong id="cmdTitle">CMD</strong>
     <button class="fx-btn secondary btn-animated" id="closeCmd">Close</button>
   </header>
   <div id="cmdBox" style="padding:12px;background:#0b0b0b;color:#e5e7eb;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:60vh;overflow:auto"></div>
@@ -789,12 +754,12 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 
 <script>
 const AUTH_KEY='fixline_auth';
-if(!localStorage.getItem(AUTH_KEY)){ location.href='login.html'; }
+if(!sessionStorage.getItem(AUTH_KEY)){ location.href='login.html'; }
 
 function powerMenu(){ const m=document.getElementById('powerMenu'); m.style.display = (m.style.display==="block")?"none":"block"; }
 /* Logout now notifies the parent wrapper to switch back to login */
 function logout(){
-  localStorage.removeItem(AUTH_KEY);
+  sessionStorage.removeItem(AUTH_KEY);
   try{ window.parent?.postMessage?.({type:'FIXLINE_LOGOUT'}, '*'); }catch(e){}
   location.href='login.html';
 }
@@ -1279,20 +1244,19 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 <script>
 (function(){
   const AUTH_KEY = 'fixline_auth';
-  const RM_USER_KEY='fixline_rm_user';
-  const RM_PASS_KEY='fixline_rm_pass';
-  const RM_FLAG_KEY='fixline_rm_flag';
-
+  const REM_KEY  = 'fixline_remember';
   const loginFrame = document.getElementById('loginFrame');
   const dashFrame  = document.getElementById('dashFrame');
 
-  // Load templates into the iframes
   loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
 
-  function showLoader(ms=1200, after){
+  function showLoader(ms = 1200, after){
     const L = document.getElementById('fxLoader');
     L.classList.add('on');
-    setTimeout(()=>{ L.classList.remove('on'); after && after(); }, ms);
+    setTimeout(() => {
+      L.classList.remove('on');
+      if (after) after();
+    }, ms);
   }
 
   function showApp(){
@@ -1300,30 +1264,17 @@ document.getElementById('interval').addEventListener('change', setupAuto);
       dashFrame.srcdoc = document.getElementById('dashTpl').innerHTML;
       dashFrame.dataset.loaded = '1';
     }
-    loginFrame.style.display='none';
-    dashFrame.style.display='block';
+    loginFrame.style.display = 'none';
+    dashFrame.style.display  = 'block';
   }
 
-  /* ===== NEW: keep session across refreshes ===== */
-  function bootInitialView(){
-    const authed = !!localStorage.getItem(AUTH_KEY);
-    if (authed){
-      // User already logged in: go straight to dashboard
-      showLoader(600, showApp);
-    }else{
-      // Not logged in yet: show login
-      loginFrame.style.display='block';
-      dashFrame.style.display='none';
-    }
-  }
-
-  /* Listen for logout from dashboard iframe */
-  window.addEventListener('message', (ev)=>{
+  // Listen for logout request from inside the dashboard iframe
+  window.addEventListener('message', (ev) => {
     if (ev?.data?.type === 'FIXLINE_LOGOUT'){
-      try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
-      showLoader(600, ()=>{
-        dashFrame.style.display='none';
-        loginFrame.style.display='block';
+      try { sessionStorage.removeItem(AUTH_KEY); } catch(e){}
+      showLoader(600, () => {
+        dashFrame.style.display = 'none';
+        loginFrame.style.display = 'block';
         loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
         dashFrame.removeAttribute('data-loaded');
         dashFrame.srcdoc = '';
@@ -1331,64 +1282,88 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     }
   });
 
-  /* Intercept login inside iframe and set AUTH_KEY */
+  // Intercept login form submit inside the login iframe
   loginFrame.addEventListener('load', () => {
     try{
-      const doc = loginFrame.contentDocument;
-      const win = loginFrame.contentWindow;
+      const doc  = loginFrame.contentDocument;
+      const win  = loginFrame.contentWindow;
       const form = doc.getElementById('loginForm');
-      if(!form) return;
+      if (!form) return;
 
-      form.addEventListener('submit', (ev)=>{
+      // Prefill from Remember me
+      try{
+        const raw = window.localStorage.getItem(REM_KEY);
+        if (raw){
+          const saved = JSON.parse(raw);
+          if (saved && saved.remember){
+            const uField = doc.getElementById('user');
+            const pField = doc.getElementById('pass');
+            const chk    = doc.getElementById('remember');
+            if (uField && typeof saved.u === 'string') uField.value = saved.u;
+            if (pField && typeof saved.p === 'string') pField.value = saved.p;
+            if (chk) chk.checked = true;
+          }
+        }
+      }catch(e){}
+
+      form.addEventListener('submit', (ev) => {
         ev.preventDefault();
         ev.stopImmediatePropagation();
 
         const wrap = doc.getElementById('vbtn');
-        if(wrap){ wrap.classList.add('play'); setTimeout(()=>wrap.classList.remove('play'),900); }
+        if (wrap){
+          wrap.classList.add('play');
+          setTimeout(() => wrap.classList.remove('play'), 900);
+        }
 
         const u = (doc.getElementById('user')?.value || '').trim();
         const p = (doc.getElementById('pass')?.value || '');
         const remember = !!doc.getElementById('remember')?.checked;
 
-        if(u==='admin' && p==='Fixline@123'){
-          // remember-me storage
+        if (u === 'admin' && p === 'Fixline@123'){
+          // Save or clear Remember me
           try{
-            if(remember){
-              localStorage.setItem(RM_USER_KEY,u);
-              localStorage.setItem(RM_PASS_KEY,p);
-              localStorage.setItem(RM_FLAG_KEY,'1');
+            if (remember){
+              window.localStorage.setItem(REM_KEY, JSON.stringify({u,p,remember:true}));
             }else{
-              localStorage.removeItem(RM_USER_KEY);
-              localStorage.removeItem(RM_PASS_KEY);
-              localStorage.removeItem(RM_FLAG_KEY);
+              window.localStorage.removeItem(REM_KEY);
             }
           }catch(e){}
 
-          localStorage.setItem(AUTH_KEY,'1');
+          // Per-tab auth (refresh safe, new tab requires login again)
+          sessionStorage.setItem(AUTH_KEY,'1');
           showLoader(1200, showApp);
-        }else{
-          if (typeof win.toast==='function') win.toast('warning','Invalid username or password. ⚠️');
+        } else {
+          if (typeof win.toast === 'function'){
+            win.toast('warning','Invalid username or password. ⚠️');
+          }
         }
       }, true);
     }catch(e){}
   });
 
-  dashFrame.addEventListener('load', ()=>{
+  // If the dashboard iframe ever navigates to login.html, treat as logout
+  dashFrame.addEventListener('load', () => {
     try{
-      const href = dashFrame.contentWindow.location.href || '';
+      const href = dashFrame.contentWindow.location?.href || '';
       if (/login\.html(\?|#|$)/i.test(href)) {
-        localStorage.removeItem(AUTH_KEY);
-        showLoader(600, ()=>{
-          dashFrame.style.display='none';
-          loginFrame.style.display='block';
+        sessionStorage.removeItem(AUTH_KEY);
+        showLoader(600, () => {
+          dashFrame.style.display = 'none';
+          loginFrame.style.display = 'block';
           loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
+          dashFrame.removeAttribute('data-loaded');
+          dashFrame.srcdoc = '';
         });
       }
     }catch(e){}
   });
 
-  // Run the initial view logic on first load
-  bootInitialView();
+  // When user refreshes this tab, if we still have auth in *this tab*,
+  // skip login and go straight to dashboard.
+  if (sessionStorage.getItem(AUTH_KEY)) {
+    showLoader(400, showApp);
+  }
 })();
 </script>
 </body>
