@@ -57,7 +57,7 @@
   }
   @keyframes fx-orbit4{
     from{ transform:translateY(-50%) rotate(0deg)   translateX(70px) rotate(0deg); }
-    to  { transform:translateY(-50%) rotate(360deg) translateX(70px) rotate(0deg); }
+    to  { transform:translateY(-50%) rotate(360deg) translateX(70px) rotate(-360deg); }
   }
   @keyframes fx-coreGlow{
     0%  { box-shadow:0 0 30px rgba(255,255,255,.5), inset 0 0 20px rgba(255,255,255,.3); }
@@ -141,12 +141,36 @@
     .sub{ color:#fff; }
     .form{width:100%;display:flex;flex-direction:column;gap:22px}
     .inputBox{position:relative;width:100%}
-    .inputBox input[type="text"], .inputBox input[type="password"]{
+    .inputBox input[type="text"], .inputBox input[type="password"], .inputBox input[type="email"], .inputBox input[type="tel"]{
       width:100%;background:#333;color:#fff;border:0;outline:0;border-radius:6px;
-      padding:24px 12px 10px;font-size:1rem;font-weight:500; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+      padding:24px 42px 10px 12px;font-size:1rem;font-weight:500; box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
     }
     .inputBox i{position:absolute;left:10px;top:10px;font-style:normal;color:var(--muted);transition:.35s}
     .inputBox input:focus + i,.inputBox input:valid + i{transform:translateY(-9px);font-size:.8rem;color:#fff}
+
+    /* password toggle eye */
+    .pwToggle{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      width:28px;
+      height:28px;
+      border-radius:50%;
+      border:none;
+      background:transparent;
+      color:#ffb3b3;
+      cursor:pointer;
+      font-size:1.1rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:0;
+    }
+    .pwToggle:hover{
+      background:rgba(255,255,255,.06);
+    }
+
     .links{width:100%;display:flex;justify-content:space-between;align-items:center;font-size:.95rem}
     .links a{color:#fff;text-decoration:none;opacity:.9}
     .links a#forgot:hover{color:#ffb3b3;text-decoration:underline}
@@ -187,8 +211,9 @@
       transform:scaleX(0);transform-origin:left;background:linear-gradient(to right,var(--bgX),var(--fgX));
       border-radius:inherit;animation:progress 2.5s .3s linear forwards;opacity:.9;
     }
-    .notification--warning{--bg:#512e08;--fg:#ffa536}
-    .notification--info{--bg:#1a1a2e;--fg:#8b8bda}
+    .notification--warning{--bgX:#512e08;--fgX:#ffa536}
+    /* brighter colorful info toast for "Contact to BA Support" */
+    .notification--info{--bgX:#2b0b3a;--fgX:#ffb7ff}
     @keyframes fade-in{5%{opacity:1;visibility:visible;transform:translateY(0)}95%{opacity:1;transform:translateY(0)}}
     @keyframes progress{to{transform:scaleX(1)}}
   </style>
@@ -213,6 +238,7 @@
         <div class="inputBox">
           <input id="pass" type="password" name="password" required>
           <i>🔑 Password</i>
+          <button type="button" id="pwToggle" class="pwToggle" aria-label="Show password">👁</button>
         </div>
 
         <div class="links">
@@ -286,6 +312,48 @@
       btn.addEventListener('click',()=>{wrap.classList.add('play');setTimeout(()=>wrap.classList.remove('play'),900)});
     });
 
+    /* Remember-me localStorage keys */
+    const RM_USER_KEY='fixline_rm_user';
+    const RM_PASS_KEY='fixline_rm_pass';
+    const RM_FLAG_KEY='fixline_rm_flag';
+
+    // Prefill remembered credentials, if any
+    (function initRemember(){
+      try{
+        const u=localStorage.getItem(RM_USER_KEY)||'';
+        const p=localStorage.getItem(RM_PASS_KEY)||'';
+        const flag=localStorage.getItem(RM_FLAG_KEY)==='1';
+        const uEl=document.getElementById('user');
+        const pEl=document.getElementById('pass');
+        const chk=document.getElementById('remember');
+        if(u && uEl){uEl.value=u;}
+        if(p && pEl){pEl.value=p;}
+        if(flag && chk){chk.checked=true;}
+      }catch(e){}
+    })();
+
+    // Password eye toggle
+    (function(){
+      const pass=document.getElementById('pass');
+      const toggle=document.getElementById('pwToggle');
+      if(!pass || !toggle) return;
+      const apply=()=>{
+        if(pass.type==='password'){
+          toggle.textContent='👁';
+          toggle.setAttribute('aria-label','Show password');
+        }else{
+          toggle.textContent='🙈';
+          toggle.setAttribute('aria-label','Hide password');
+        }
+      };
+      apply();
+      toggle.addEventListener('click',()=>{
+        pass.type = (pass.type==='password') ? 'text' : 'password';
+        apply();
+        pass.focus();
+      });
+    })();
+
     document.getElementById('loginForm').addEventListener('submit',e=>{
       e.preventDefault();
       const wrap=document.getElementById('vbtn');
@@ -294,6 +362,7 @@
       const u=document.getElementById('user').value.trim();
       const p=document.getElementById('pass').value;
       if(u==='admin' && p==='Fixline@123'){
+        // This redirect is overridden by outer wrapper, but keep as fallback.
         location.href='index.html';
       }else{
         toast('warning','Invalid username or password. ⚠️');
@@ -900,36 +969,6 @@ let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
 const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
-/* ===== CMD / LOG WebSocket session tracking ===== */
-let activeCmdWs  = null;
-let activeCmdId  = null;
-let activeLogWs  = null;
-let activeLogId  = null;
-
-/* Close helpers so old consoles are always killed (UI + WS) */
-function closeCmdSession(){
-  if (activeCmdWs){
-    try{ activeCmdWs.close(); }catch(e){}
-    activeCmdWs = null;
-  }
-  activeCmdId = null;
-  const dlg = document.getElementById('cmdDlg');
-  if (dlg && dlg.open) dlg.close();
-}
-function closeLogSession(){
-  if (activeLogWs){
-    try{ activeLogWs.close(); }catch(e){}
-    activeLogWs = null;
-  }
-  activeLogId = null;
-  const dlg = document.getElementById('logDlg');
-  if (dlg && dlg.open) dlg.close();
-}
-function closeAllConsoles(){
-  closeCmdSession();
-  closeLogSession();
-}
-
 /* ===== Confirm modal helper (top-drop) ===== */
 function fxConfirm(message){
   return new Promise((resolve)=>{
@@ -1036,13 +1075,7 @@ function loadOverview(){
     .finally(()=> showLoading(false));
 }
 
-/* NOTE: these just tell the agent to stop/restart.
-   The actual killing of Selenium / browser windows must be done in the agent
-   when it handles /api/stop, /api/restart, /api/stop-all, /api/restart-all. */
 function runCmd(action, id, name){
-  // Always close any existing consoles so old CMD/log UIs disappear
-  closeAllConsoles();
-
   const base = (document.getElementById('base')?.value || '').trim();
   if (!base){ notifyWarn('Set Base URL first.'); return; }
   (async () => {
@@ -1061,10 +1094,6 @@ function openLogs(id, name){
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
 
-  // Close previous log session (WS + dialog) before opening a new one
-  closeLogSession();
-  activeLogId = id;
-
   let wsUrl;
   try {
     const u = new URL(base);
@@ -1078,8 +1107,6 @@ function openLogs(id, name){
   document.getElementById('logDlg').showModal();
 
   const ws = new WebSocket(wsUrl);
-  activeLogWs = ws;
-
   ws.onmessage = (e)=>{ const box=document.getElementById('logBox'); box.textContent += (e.data||'')+'\n'; box.scrollTop = box.scrollHeight; };
   ws.onerror   = ()=> notifyError('Log stream error');
 }
@@ -1089,10 +1116,6 @@ function openCmd(id, name){
   const base = (document.getElementById('base')?.value || '').trim();
   const tk   = (document.getElementById('token')?.value || '').trim();
   if (!base) { notifyWarn('Set Base URL first.'); return; }
-
-  // Close any previous CMD session before opening a new one
-  closeCmdSession();
-  activeCmdId = id;
 
   const makeWS = (pathWithQuery='')=>{
     try{
@@ -1126,7 +1149,7 @@ function openCmd(id, name){
     attempt++;
     if (attempt >= endpoints.length){
       box.textContent += '[connection closed]\n';
-      notifyError('CMD connection error');   // toast only once, after ALL attempts fail
+      notifyError('CMD connection error');   // toast only once, after ALL attempts
       return;
     }
     connectAttempt(attempt);
@@ -1137,7 +1160,6 @@ function openCmd(id, name){
     const usingLogsFallback = (idx === 2);
     try{
       ws = new WebSocket(url);
-      activeCmdWs = ws;  // track latest connection globally
     }catch(_){
       return next();
     }
@@ -1154,13 +1176,15 @@ function openCmd(id, name){
       box.scrollTop = box.scrollHeight;
     };
 
-    ws.onerror = ()=>{ /* swallow intermediate errors; final error handled in next() */ };
+    // swallow intermediate errors; we'll notify only if all attempts fail
+    ws.onerror = ()=>{ /* no-op until final fail */ };
 
     ws.onclose = ()=>{
       if (!connected) next();
       else box.textContent += '[connection closed]\n';
     };
 
+    // 2.5s guard to move on if a server accepts but never opens
     const guard = setTimeout(()=>{
       if (!connected && ws && ws.readyState < 2){
         try{ ws.close(); }catch(_){}
@@ -1170,15 +1194,14 @@ function openCmd(id, name){
   };
 
   connectAttempt(0);
+
+  document.getElementById('closeCmd').onclick = ()=>{
+    try{ ws && ws.close(); }catch(_){}
+    document.getElementById('cmdDlg').close();
+  };
 }
 
-/* Hook close buttons to close & kill WS as well */
-document.getElementById('closeCmd').onclick = ()=> closeCmdSession();
-document.getElementById('closeLog').onclick = ()=> closeLogSession();
-
 async function restartAll(){
-  // Close all consoles (UI + WS) when doing global restart
-  closeAllConsoles();
   try{
     let r;
     try { r = await apiPost('/api/restart-all'); }
@@ -1188,8 +1211,6 @@ async function restartAll(){
   }catch(e){ notifyError('Restart-all failed: ' + e.message); }
 }
 async function stopAll(){
-  // Close all consoles (UI + WS) when doing global stop
-  closeAllConsoles();
   try{
     let r;
     try { r = await apiPost('/api/stop-all'); }
@@ -1226,6 +1247,7 @@ document.getElementById('adopt').onclick     = async (e)=>{ const enable=!e.altK
 
 document.getElementById('copyCurl').onclick = ()=>{ const base = (document.getElementById('base')?.value || '').trim(); const u = base ? (base.replace(/\/+$/,'') + '/api/overview') : location.href; navigator.clipboard.writeText(u); notifySuccess('Data URL copied.'); };
 document.getElementById('copyLog').onclick  = ()=>{ navigator.clipboard.writeText(document.getElementById('logBox').textContent||''); notifySuccess('Copied.'); };
+document.getElementById('closeLog').onclick = ()=> document.getElementById('logDlg').close();
 document.getElementById('filter').addEventListener('input', ()=> renderRows(currentRows));
 
 document.querySelectorAll('th.sortable').forEach(th=>{
@@ -1257,6 +1279,10 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 <script>
 (function(){
   const AUTH_KEY = 'fixline_auth';
+  const RM_USER_KEY='fixline_rm_user';
+  const RM_PASS_KEY='fixline_rm_pass';
+  const RM_FLAG_KEY='fixline_rm_flag';
+
   const loginFrame = document.getElementById('loginFrame');
   const dashFrame  = document.getElementById('dashFrame');
 
@@ -1307,7 +1333,22 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 
         const u = (doc.getElementById('user')?.value || '').trim();
         const p = (doc.getElementById('pass')?.value || '');
+        const remember = !!doc.getElementById('remember')?.checked;
+
         if(u==='admin' && p==='Fixline@123'){
+          // remember-me storage
+          try{
+            if(remember){
+              localStorage.setItem(RM_USER_KEY,u);
+              localStorage.setItem(RM_PASS_KEY,p);
+              localStorage.setItem(RM_FLAG_KEY,'1');
+            }else{
+              localStorage.removeItem(RM_USER_KEY);
+              localStorage.removeItem(RM_PASS_KEY);
+              localStorage.removeItem(RM_FLAG_KEY);
+            }
+          }catch(e){}
+
           localStorage.setItem(AUTH_KEY,'1');
           showLoader(1200, showApp);
         }else{
