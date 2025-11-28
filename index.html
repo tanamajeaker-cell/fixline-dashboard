@@ -67,7 +67,7 @@
 </head>
 <body>
 <div id="stage">
-  <!-- Always show login first -->
+  <!-- Always show login first in markup; JS decides based on auth -->
   <iframe id="loginFrame" class="full"
     sandbox="allow-scripts allow-forms allow-same-origin"
     referrerpolicy="no-referrer" title="FixLine Login"></iframe>
@@ -92,7 +92,7 @@
   </div>
 </div>
 
-<!-- ===== Templates hold your original pages UNCHANGED ===== -->
+<!-- ===== Templates hold your original pages ===== -->
 <template id="loginTpl">
 <!doctype html>
 <html lang="en">
@@ -769,7 +769,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 <!-- CMD dialog (read-only stream) -->
 <dialog id="cmdDlg" class="modal" style="border:1px solid #3b3b3b;border-radius:12px;">
   <header style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-bottom:1px solid #3b3b3b">
-    <strong id="cmdTitle">CMD</strong>
+    <strong id="cmdTitle">View</strong>
     <button class="fx-btn secondary btn-animated" id="closeCmd">Close</button>
   </header>
   <div id="cmdBox" style="padding:12px;background:#0b0b0b;color:#e5e7eb;font-family:ui-monospace,Consolas,Menlo,monospace;white-space:pre-wrap;max-height:60vh;overflow:auto"></div>
@@ -1286,6 +1286,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
   const loginFrame = document.getElementById('loginFrame');
   const dashFrame  = document.getElementById('dashFrame');
 
+  // Load templates into the iframes
   loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
 
   function showLoader(ms=1200, after){
@@ -1303,7 +1304,20 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     dashFrame.style.display='block';
   }
 
-  /* Listen for logout request from dashboard iframe */
+  /* ===== NEW: keep session across refreshes ===== */
+  function bootInitialView(){
+    const authed = !!localStorage.getItem(AUTH_KEY);
+    if (authed){
+      // User already logged in: go straight to dashboard
+      showLoader(600, showApp);
+    }else{
+      // Not logged in yet: show login
+      loginFrame.style.display='block';
+      dashFrame.style.display='none';
+    }
+  }
+
+  /* Listen for logout from dashboard iframe */
   window.addEventListener('message', (ev)=>{
     if (ev?.data?.type === 'FIXLINE_LOGOUT'){
       try{ localStorage.removeItem(AUTH_KEY); }catch(e){}
@@ -1317,6 +1331,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     }
   });
 
+  /* Intercept login inside iframe and set AUTH_KEY */
   loginFrame.addEventListener('load', () => {
     try{
       const doc = loginFrame.contentDocument;
@@ -1372,6 +1387,8 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     }catch(e){}
   });
 
+  // Run the initial view logic on first load
+  bootInitialView();
 })();
 </script>
 </body>
