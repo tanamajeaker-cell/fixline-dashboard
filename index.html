@@ -637,18 +637,12 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 <div id="powerMenu">
   <ul>
     <li><button onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i>&nbsp;Logout</button></li>
-    <li><button onclick="reboot()"><i class="fa-solid fa-arrow-rotate-right"></i>&nbsp;Reboot</button></li>
-    <li><button onclick="poweroff()"><i class="fa-solid fa-power-off"></i>&nbsp;Power Off</button></li>
   </ul>
 </div>
 
 <div id="options">
   <ul>
     <li><a href="#"><i class="fa-solid fa-unlock"></i> Change Password</a></li>
-    <li><a href="#"><i class="fa-solid fa-key"></i> API Keys</a></li>
-    <li><a href="#"><i class="fa-solid fa-circle-question"></i> Guides</a></li>
-    <li><a href="#"><i class="fa-solid fa-clipboard"></i> About</a></li>
-    <li><a href="#" id="toggleTheme"><i class="fa-solid fa-sun"></i> Light Mode</a></li>
   </ul>
 </div>
 
@@ -765,8 +759,37 @@ function logout(){
 }
 function reboot(){ notifyWarn('Reboot requested. (Hook your backend if needed)'); }
 function poweroff(){ notifyError('Power off requested. (Hook your backend if needed)'); }
-function sideNav(){ const m=document.getElementById('sideNav'); m.style.display = (m.style.display==="block")?"none":"block"; }
+function sideNav(force){
+  const m = document.getElementById('sideNav');
+  if (!m) return;
+
+  // Explicit open/close for hover logic
+  if (force === true) {
+    m.style.display = 'block';
+    return;
+  }
+  if (force === false) {
+    m.style.display = 'none';
+    return;
+  }
+
+  // Fallback toggle when user clicks the button
+  m.style.display = (m.style.display === 'block') ? 'none' : 'block';
+}
 function options(){ const m=document.getElementById('options'); m.style.display = (m.style.display==="block")?"none":"block"; }
+
+/* === NEW: open side nav on hover, close when mouse leaves panel === */
+(function setupSideHover(){
+  const btn   = document.querySelector('.sideNav');
+  const panel = document.getElementById('sideNav');
+  if (!btn || !panel) return;
+
+  // open when mouse enters hamburger
+  btn.addEventListener('mouseenter', () => sideNav(true));
+
+  // close when mouse leaves the menu panel
+  panel.addEventListener('mouseleave', () => sideNav(false));
+})();
 
 (function startClock(){
   const d=document.querySelector('#clock .date'), t=document.querySelector('#clock .time');
