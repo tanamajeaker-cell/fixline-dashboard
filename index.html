@@ -353,6 +353,260 @@ html { overflow:auto; }
 *{ margin:0; padding:0; font-size:16px; font-family:sans-serif; box-sizing:border-box; scrollbar-width:thin; scrollbar-color:#aa4755 #5c5c5c; scrollbar-gutter:stable; }
 *::-webkit-scrollbar{ width:6px } *::-webkit-scrollbar-track{ background:#5c5c5c } *::-webkit-scrollbar-thumb{ background:#aa4755; border-radius:12px }
 
+/* Full-screen layout when Settings is opened as its own page */
+#settingsPanel.fullscreen{
+  margin:0 -1em;                 /* eat the .content padding so it touches edges */
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  padding:24px 24px 32px;
+  min-height:calc(100vh - 4em - 2em); /* full height minus header + footer */
+}
+
+/* Full-screen layout when Settings is opened as its own page */
+#settingsPanel.fullscreen{
+  margin:0 -1em;
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  padding:24px 24px 32px;
+  min-height:calc(100vh - 4em - 2em);
+}
+
+/* Full-screen layout when FILES page is opened */
+#filesPanel.fullscreen{
+  margin:0 -1em;
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  padding:24px 24px 32px;
+  min-height:calc(100vh - 4em - 2em);
+}
+
+/* ===== Settings layout (clean two-column) ===== */
+.settings-layout{
+  display:flex;
+  flex-wrap:wrap;
+  gap:18px;
+}
+
+.settings-footer{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:12px;
+}
+
+.set-section{
+  flex:1 1 260px;
+  padding:12px 14px 14px;
+  border-radius:10px;
+  background:rgba(0,0,0,.45);
+  border:1px solid #2e2e2e;
+}
+
+.set-section h4{
+  margin-bottom:8px;
+  font-size:1rem;
+  color:#f1f5f9;
+}
+
+.set-field{
+  width:100%;
+  margin-bottom:10px;
+}
+
+.set-label{
+  display:block;
+  font-size:.85rem;
+  margin-bottom:4px;
+  opacity:.9;
+}
+
+.set-control{
+  width:100%;
+  background:#141414;
+  color:#e8e8e8;
+  border:1px solid #3b3b3b;
+  border-radius:8px;
+  padding:8px 10px;
+}
+
+.set-note{
+  font-size:.8rem;
+  opacity:.75;
+}
+
+/* ===== Files layout / editor ===== */
+.files-layout{
+  align-items:flex-start;
+}
+
+.files-table-wrap{
+  margin-top:6px;
+  max-height:320px;
+  overflow:auto;
+}
+
+.files-upload-row{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+#filesTable td .file-path{
+  font-size:.75rem;
+  opacity:.7;
+}
+
+.code-editor{
+  width:100%;
+  min-height:260px;
+  background:#050608;
+  color:#e5e7eb;
+  border-radius:8px;
+  border:1px solid #27272f;
+  font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace;
+  font-size:.85rem;
+  padding:10px 12px;
+  resize:vertical;
+  line-height:1.4;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);
+}
+
+body.fx-light .code-editor{
+  background:#f9fafb;
+  color:#111827;
+  border-color:#d1d5db;
+  box-shadow:none;
+}
+
+/* === Theme switch on header === */
+.theme-switch{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-left:.75rem;
+}
+
+.theme-checkbox{
+  opacity:0;
+  position:absolute;
+  pointer-events:none;
+}
+
+.theme-label{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  position:relative;
+  width:60px;
+  height:28px;
+  padding:4px 6px;
+  border-radius:999px;
+  cursor:pointer;
+  box-shadow:0 0 0 1px rgba(0,0,0,.55), 0 0 10px rgba(0,0,0,.4) inset;
+  background:#111827;
+  color:#facc6b;
+  transition:all .3s cubic-bezier(0.76,0,0.24,1);
+}
+
+.theme-label .moon,
+.theme-label .sun{
+  transform-origin:center center;
+  transition:transform .5s cubic-bezier(0.76,0,0.24,1);
+}
+
+.theme-label:hover .moon,
+.theme-label:hover .sun{
+  transform:rotate(360deg);
+}
+
+.theme-ball{
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#facc6b;
+  transition:all .3s cubic-bezier(0.76,0,0.24,1);
+}
+
+/* Ball position for light mode */
+body.fx-light .theme-ball{
+  transform:translateX(30px);
+}
+
+/* Light look for the switch itself */
+body.fx-light .theme-label{
+  background:#e5e7eb;
+  color:#f97316;
+  box-shadow:0 0 0 1px rgba(148,163,184,.7), 0 0 10px rgba(148,163,184,.5) inset;
+}
+
+/* === Light theme (applies when body has .fx-light) === */
+body.fx-light{
+  background-image:none;
+  background-color:#f3f4f6;
+  color:#111827;
+}
+
+body.fx-light .header{
+  background:#f9fafb;
+  border-bottom:2px solid #e5e7eb;
+  filter:drop-shadow(0 0 .5rem rgba(0,0,0,.25));
+}
+
+body.fx-light #clock .date,
+body.fx-light #clock .time,
+body.fx-light #welcomeUser{
+  color:#111827;
+}
+
+body.fx-light .fx-card{
+  background:#ffffff;
+  border-color:#e5e7eb;
+  color:#111827;
+}
+
+body.fx-light .fx-kpi{
+  background:#f9fafb;
+  border-color:#e5e7eb;
+}
+
+body.fx-light table.fx-table th{
+  background:#e5e7eb;
+  color:#111827;
+}
+body.fx-light table.fx-table td{
+  border-bottom:1px solid #e5e7eb;
+  color:#111827;
+}
+
+body.fx-light footer{
+  background:#f9fafb;
+  color:#6b7280;
+}
+
+body.fx-light .sideNav,
+body.fx-light #cog,
+body.fx-light .powerMenu{
+  color:#111827;
+}
+
+body.fx-light .lang-toggle{
+  background:#e5e7eb;
+  color:#111827;
+  border-color:#d1d5db;
+}
+
+/* compact table density option */
+body.fx-compact-table table.fx-table th,
+body.fx-compact-table table.fx-table td{
+  padding:6px 6px;
+}
+
 body{
   position:relative;
   background-image:url("https://cdn.wallpapersafari.com/18/37/3DnTgd.jpg");
@@ -380,6 +634,51 @@ body{
 }
 @keyframes spinPulse{ 0%{ transform:scale(1) rotate(0) } 50%{ transform:scale(1.06) rotate(180deg) } 100%{ transform:scale(1) rotate(360deg) } }
 
+/* === Animated FixLine logo (Python-like) === */
+.fx-logo .badge svg{
+  width:22px;
+  height:22px;
+  display:block;
+}
+
+#python-logo path{
+  fill:transparent;
+  stroke-width:5px;
+  transition:transform .2s ease-in-out, filter .2s ease-in-out;
+}
+
+#python-logo path:first-child{
+  stroke:#3670A0;
+  animation:border-move 2s linear forwards, fill-first 1s 2s linear forwards;
+}
+
+#python-logo path:last-child{
+  stroke:#FED140;
+  animation:border-move 2s linear forwards, fill-second 1s 2s linear forwards;
+}
+
+#python-logo:hover path:first-child{
+  transform:translate(-2%, -2%);
+  filter:drop-shadow(0 0 10px #3670A0);
+}
+#python-logo:hover path:last-child{
+  transform:translate(2%, 2%);
+  filter:drop-shadow(0 0 10px #FED140);
+}
+
+@keyframes border-move{
+  0%   { stroke-dasharray:0 1600; }
+  100% { stroke-dasharray:1600 1600; }
+}
+@keyframes fill-first{
+  0%   { fill:transparent; }
+  100% { fill:#3670A0; }
+}
+@keyframes fill-second{
+  0%   { fill:transparent; }
+  100% { fill:#FED140; }
+}
+
 /* === TYPING ANIMATION — NO CURSOR === */
 .fx-logo h1{ 
   font-size:1.9rem; font-weight:800; letter-spacing:.04em; text-shadow:0 0 10px rgba(255,255,255,.15);
@@ -390,6 +689,15 @@ body{
 #clock{ margin-left:auto; text-align:right; line-height:1; padding-right:.5rem }
 #clock .date{ font-size:.78rem; opacity:.85 }
 #clock .time{ font-size:1.05rem; font-weight:700 }
+
+#welcomeUser{
+  font-size:.85rem;
+  font-weight:700;
+  color:#facc6b;              /* nice gold-ish text */
+  text-align:right;
+  margin-bottom:2px;
+  text-shadow:0 0 6px rgba(0,0,0,.7);
+}
 
 /* Language dropdown with flags */
 .lang-dd{ position:relative; margin-left:.5rem }
@@ -570,7 +878,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 }
 #fxConfirm .hd{ padding:12px 16px; font-weight:800; letter-spacing:.02em; background:linear-gradient(180deg,#101014 0%, #15151a 100%) !important; border-bottom:1px solid #2a2a2f; }
 #fxConfirm .msg{ padding:16px; font-size:1.05rem }
-#fxConfirm .bar{ padding:12px 14px; display:flex; gap:10px; justify-content:flex-end; background:rgba(20,20,24,.65); border-top:1px solid #2a2af; }
+#fxConfirm .bar{ padding:12px 14px; display:flex; gap:10px; justify-content:flex-end; background:rgba(20,20,24,.65); border-top:1px solid #2a2a2f; }
 .fxbtn{ border:0; padding:.6rem 1.1rem; border-radius:10px; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,.35); transition:transform .1s ease, box-shadow .2s ease; }
 .fxbtn.ok{ background:#0ba97b; color:#fff }
 .fxbtn.cancel{ background:#2b2b35; color:#e5e8f0 }
@@ -590,18 +898,56 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 <div class="header">
   <button class="sideNav" onclick="sideNav()"><i class="fa-solid fa-bars"></i></button>
 
-  <div class="fx-logo">
-    <div class="badge"><i class="fa-solid fa-microchip"></i></div>
-    <h1>FixLine</h1>
+<div class="fx-logo">
+  <div class="badge">
+    <svg
+      id="python-logo"
+      viewBox="0 0 512 512"
+      aria-hidden="true"
+    >
+      <path
+        d="m116 296c0-30.328125 24.671875-55 55-55h170c13.785156 0 25-11.214844 25-25v-141c0-41.355469-33.644531-75-75-75h-70c-41.355469 0-75 33.644531-75 75v41h110c8.285156 0 15 6.714844 15 15s-6.714844 15-15 15h-181c-41.355469 0-75 33.644531-75 75v70c0 41.355469 33.644531 75 75 75h41zm105-220c-8.285156 0-15-6.714844-15-15s6.714844-15 15-15 15 6.714844 15 15-6.714844 15-15 15zm0 0" />
+      <path
+        d="m437 146h-41v70c0 30.328125-24.671875 55-55 55h-170c-13.785156 0-25 11.214844-25 25v141c0 41.355469 33.644531 75 75 75h70c41.355469 0 75-33.644531 75-75v-41h-110c-8.285156 0-15-6.714844-15-15s6.714844-15 15-15h181c41.355469 0 75-33.644531 75-75v-70c0-41.355469-33.644531-75-75-75zm-146 290c8.285156 0 15 6.714844 15 15s-6.714844 15-15 15-15-6.714844-15-15 6.714844-15 15-15zm0 0" />
+    </svg>
   </div>
+  <h1>FixLine</h1>
+</div>
 
-  <div id="clock">
-    <div class="date">—</div>
-    <div class="time">—</div>
-    <div id="i_livetime_label" style="font-size:.65rem;opacity:.7">Live time</div>
-  </div>
+<div id="clock">
+  <div id="welcomeUser" class="welcome-user"></div>
+  <div class="date">—</div>
+  <div class="time">—</div>
+  <div id="i_livetime_label" style="font-size:.65rem;opacity:.7">Live time</div>
+</div>
 
-  <div id="lang" class="lang-dd">
+<!-- Light / Dark theme switch -->
+<div class="theme-switch" title="Toggle light / dark">
+  <input type="checkbox" class="theme-checkbox" id="themeToggle" />
+  <label for="themeToggle" class="theme-label">
+    <svg class="moon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+      <path d="M3 11.5066C3 16.7497 7.25034 21 12.4934 21C16.2209 21 19.4466 18.8518 21 15.7259C12.4934 15.7259 8.27411 11.5066 8.27411 3C5.14821 4.55344 3 7.77915 3 11.5066Z"
+            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <svg class="sun" width="20" height="20" viewBox="0 0 24 24" fill="none"
+         xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z"
+            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M22 12L23 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12 2V1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M12 23V22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M20 20L19 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M20 4L19 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 20L5 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M4 4L5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M1 12L2 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="theme-ball"></div>
+  </label>
+</div>
+
+<div id="lang" class="lang-dd">
     <button id="langToggle" class="lang-toggle" aria-haspopup="true" aria-expanded="false">
       <span id="langFlag" class="flag flag-gb" aria-hidden="true"></span>
       <span id="langLabel">English</span>
@@ -626,11 +972,11 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
     <li class="nasName">FixLine
       <p style="font-size:.6em;"><a href="#" class="nasURL">server.Monitor.com</a></p>
     </li>
-    <li><a href="#">Overview</a></li>
-    <li><a href="#">Files</a></li>
-    <li><a href="#">Setting</a></li>
-    <li><a href="#">Tasks</a></li>
-    <li><a href="#">Notification</a></li>
+    <li><a href="#" id="navOverview">OVERVIEW</a></li>
+    <li><a href="#" id="navFiles">FILES</a></li>
+    <li><a href="#" id="navSetting">SETTING</a></li>
+    <li><a href="#" id="navTasks">TASKS</a></li>
+    <li><a href="#" id="navNotif">NOTIFICATION</a></li>
   </ul>
 </div>
 
@@ -642,7 +988,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 
 <div id="options">
   <ul>
-    <li><a href="#"><i class="fa-solid fa-unlock"></i> Change Password</a></li>
+    <li><a href="#" id="topChangePass"><i class="fa-solid fa-unlock"></i> Change Password</a></li>
   </ul>
 </div>
 
@@ -685,24 +1031,221 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
     </div>
   </div>
 
-  <div class="fx-card" style="overflow:auto;">
-    <table id="tbl" class="fx-table">
-      <thead>
-        <tr>
-          <th id="th_script"  class="sortable" data-key="name"   style="min-width:280px">Script</th>
-          <th id="th_pid">CMD</th>
-          <th id="th_cpu"     class="sortable" data-key="cpu">CPU%</th>
-          <th id="th_ram"     class="sortable" data-key="mem">RAM%</th>
-          <th id="th_uptime"  class="sortable" data-key="uptime">Uptime</th>
-          <th id="th_status"  class="sortable" data-key="status">Status</th>
-          <th id="th_actions" style="min-width:280px">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="7">No data yet. Click <b>Connect</b>.</td></tr>
-      </tbody>
-    </table>
+<div class="fx-card" style="overflow:auto;">
+  <table id="tbl" class="fx-table">
+    <thead>
+      <tr>
+        <th id="th_script"  class="sortable" data-key="name">Script</th>
+        <th id="th_pid">CMD</th>
+        <th id="th_cpu"     class="sortable" data-key="cpu">CPU%</th>
+        <th id="th_ram"     class="sortable" data-key="mem">RAM%</th>
+        <th id="th_uptime"  class="sortable" data-key="uptime">Uptime</th>
+        <th id="th_status"  class="sortable" data-key="status">Status</th>
+        <th id="th_actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+  <!-- === SETTINGS PANEL (ACCOUNT + PREFS + ADMIN) === -->
+  <div id="settingsPanel" class="fx-card" style="display:none; margin-top:10px;">
+    <h3 id="i_settings_title">Settings</h3>
+    <p id="i_settings_sub" style="margin-bottom:12px; opacity:.85;">
+      Account security and personal preferences for this device.
+    </p>
+
+    <div class="settings-layout">
+      <!-- ===== My password ===== -->
+      <section class="set-section">
+        <h4 id="i_settings_mypass">My password</h4>
+
+        <div class="set-field">
+          <span class="set-label" id="i_settings_loggedin">Logged in as</span>
+          <div class="set-note"><b id="settingsUser">-</b></div>
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="setCur" id="i_settings_curpwd">Current password</label>
+          <input type="password" id="setCur" class="set-control">
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="setNew" id="i_settings_newpwd">New password</label>
+          <input type="password" id="setNew" class="set-control">
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="setNew2" id="i_settings_confirmpwd">Confirm new password</label>
+          <input type="password" id="setNew2" class="set-control">
+        </div>
+
+        <div id="pwStrength" class="set-note" style="margin-top:2px;"></div>
+
+        <!-- Save stays here (left) -->
+        <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
+          <button class="fx-btn ok" id="btnSavePass">Save</button>
+        </div>
+
+        <p class="set-note" id="i_settings_storage_note" style="margin-top:8px;">
+          ⚠ Passwords are stored only in this browser (localStorage).
+          For each PC / browser you may need to update again.
+        </p>
+      </section>
+
+      <!-- ===== Preferences ===== -->
+      <section class="set-section">
+        <h4 id="i_settings_prefs">Preferences</h4>
+
+        <div class="set-field">
+          <label class="set-label" for="prefLang" id="i_settings_pref_lang_label">Dashboard language</label>
+          <select id="prefLang" class="set-control">
+            <option value="en">English</option>
+            <option value="zh">中文 (Chinese)</option>
+          </select>
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="prefIdle" id="i_settings_pref_idle_label">Auto logout (idle)</label>
+          <select id="prefIdle" class="set-control">
+            <option value="0">Never</option>
+            <option value="5">After 5 minutes</option>
+            <option value="10">After 10 minutes</option>
+            <option value="15">After 15 minutes</option>
+            <option value="30">After 30 minutes</option>
+          </select>
+          <div class="set-note" id="i_settings_pref_idle_note">
+            Auto logout closes the dashboard if this tab is inactive.
+          </div>
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" for="prefDensity" id="i_settings_pref_density_label">Table density</label>
+          <select id="prefDensity" class="set-control">
+            <option value="normal">Comfortable</option>
+            <option value="compact">Compact (more rows)</option>
+          </select>
+        </div>
+      </section>
+    </div>
+
+    <!-- ===== Admin tools (ADMIN only) ===== -->
+    <section id="adminTools" class="set-section" style="margin-top:16px; display:none;">
+      <h4 id="i_settings_admin_title">Admin tools</h4>
+      <p class="set-note" id="i_settings_admin_note" style="margin-bottom:10px;">
+        As <b>ADMIN</b> you can reset passwords for other accounts on this device.
+      </p>
+
+      <div class="set-field">
+        <label class="set-label" for="adminUser" id="i_settings_admin_select_label">Select account</label>
+        <select id="adminUser" class="set-control"></select>
+      </div>
+
+      <div class="set-field">
+        <label class="set-label" for="adminNew" id="i_settings_admin_new_label">New password for selected account</label>
+        <input type="password" id="adminNew" class="set-control">
+      </div>
+
+      <div class="set-field">
+        <label class="set-label" for="adminNew2" id="i_settings_admin_confirm_label">Confirm new password</label>
+        <input type="password" id="adminNew2" class="set-control">
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+        <button class="fx-btn ok"   id="btnAdminSetPass">Set Password</button>
+        <button class="fx-btn warn" id="btnAdminResetDefaults">Restore Default Passwords</button>
+      </div>
+
+      <p class="set-note" id="i_settings_admin_note2" style="margin-top:8px;">
+        🛈 These changes affect only this browser / this PC.
+      </p>
+    </section>
+
+    <!-- Back button moved here, bottom-right of Settings card -->
+    <div class="settings-footer">
+      <button class="fx-btn secondary" id="btnBackSettings">Back</button>
+    </div>
   </div>
+  <!-- === END SETTINGS PANEL === -->
+
+    <!-- === FILES PANEL (SCRIPTS LIST + EDITOR) === -->
+  <div id="filesPanel" class="fx-card" style="display:none; margin-top:10px;">
+    <h3 id="i_files_title">Script files</h3>
+    <p id="i_files_sub" style="margin-bottom:12px; opacity:.85;">
+      View, upload and edit Python scripts on this agent.
+    </p>
+
+    <div class="settings-layout files-layout">
+      <!-- Left side: list / search / upload -->
+      <section class="set-section" style="flex:1.2 1 360px;">
+        <h4 id="i_files_list_title">Scripts on agent</h4>
+
+        <div class="set-field">
+          <label class="set-label" for="filesSearch" id="i_files_search_label">Search / filter</label>
+          <input id="filesSearch" class="set-control" placeholder="Filter by file name…">
+        </div>
+
+        <div class="set-field">
+          <label class="set-label" id="i_files_upload_label">Upload new script</label>
+          <div class="files-upload-row">
+            <button class="fx-btn ok" id="btnFilesUpload" type="button">
+              <i class="fa-solid fa-file-arrow-up"></i>
+              <span id="i_files_upload_btn_label" style="margin-left:.3rem;">Upload script</span>
+            </button>
+            <span id="filesUploadName" class="set-note">No file selected.</span>
+            <input type="file" id="fileUploadInput" accept=".py,.txt,.sh" style="display:none">
+          </div>
+          <p class="set-note" id="i_files_upload_note" style="margin-top:4px;">
+            Files are sent to the agent API as multipart/form-data (field name: "file"). Existing files may be overwritten.
+          </p>
+        </div>
+
+        <div class="files-table-wrap">
+          <table id="filesTable" class="fx-table">
+            <thead>
+              <tr>
+                <th id="i_files_col_name">File</th>
+                <th id="i_files_col_size">Size</th>
+                <th id="i_files_col_updated">Last modified</th>
+                <th id="i_files_col_actions">Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Right side: code editor -->
+      <section class="set-section" style="flex:1 1 340px; display:flex; flex-direction:column; min-height:260px;">
+        <h4 id="i_files_editor_title">Editor</h4>
+
+        <div class="set-field">
+          <label class="set-label" id="i_files_editor_file_label">Selected file</label>
+          <div class="set-note"><span id="editorFilename">No file selected.</span></div>
+        </div>
+
+        <textarea id="fileEditor" class="code-editor" spellcheck="false"
+          placeholder="# Select a script from the list to view / edit its code"></textarea>
+
+        <div class="settings-footer" style="margin-top:10px; justify-content:flex-end;">
+          <button class="fx-btn secondary" id="btnEditorDiscard" type="button">
+            <span id="i_files_editor_discard_label">Discard</span>
+          </button>
+          <button class="fx-btn ok" id="btnEditorSave" type="button">
+            <span id="i_files_editor_save_label">Save changes</span>
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="settings-footer">
+      <button class="fx-btn secondary" id="btnBackFiles" type="button">
+        <span id="i_files_back_label">Back</span>
+      </button>
+    </div>
+  </div>
+  <!-- === END FILES PANEL === -->
+
 </div>
 
 <footer>FixLine © 2025 | The BA Support</footer>
@@ -747,15 +1290,132 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 </div>
 
 <script>
-const AUTH_KEY='fixline_auth';
-if(!sessionStorage.getItem(AUTH_KEY)){ location.href='login.html'; }
+const AUTH_KEY  = 'fixline_auth';
+const USER_KEY  = 'fixline_user';
+const ACCOUNTS_KEY = 'fixline_accounts';
+const IDLE_KEY       = 'fixline_idle_minutes';
+const LAST_LOGIN_KEY = 'fixline_last_login';
+const DENSITY_KEY    = 'fixline_table_density';
+const THEME_KEY = 'fx_theme';   // 'light' or 'dark'
+
+/* ===== Theme handling (light / dark) ===== */
+function applyTheme(theme){
+  const body = document.body;
+  if (!body) return;
+
+  body.classList.remove('fx-light','fx-dark');
+  const mode = (theme === 'light') ? 'fx-light' : 'fx-dark';
+  body.classList.add(mode);
+
+  const cb = document.getElementById('themeToggle');
+  if (cb) cb.checked = (theme === 'light');
+}
+
+function initTheme(){
+  let theme = localStorage.getItem(THEME_KEY);
+  if (theme !== 'light' && theme !== 'dark'){
+    // default from system preference, fallback to dark
+    try{
+      if (window.matchMedia &&
+          window.matchMedia('(prefers-color-scheme: light)').matches){
+        theme = 'light';
+      }else{
+        theme = 'dark';
+      }
+    }catch(e){
+      theme = 'dark';
+    }
+  }
+  applyTheme(theme);
+
+  const cb = document.getElementById('themeToggle');
+  if (cb){
+    cb.checked = (theme === 'light');
+    cb.addEventListener('change', ()=>{
+      const newTheme = cb.checked ? 'light' : 'dark';
+      localStorage.setItem(THEME_KEY, newTheme);
+      applyTheme(newTheme);
+    });
+  }
+}
+
+/* existing code continues after this… */
+
+function updateWelcomeUser(){
+  const el = document.getElementById('welcomeUser');
+  if (!el) return;
+
+  if (!CURRENT_USER){
+    el.textContent = '';
+    return;
+  }
+
+  let name = CURRENT_USER;
+  if (CURRENT_USER === 'ADMIN') name = 'Admin';
+
+  const prefix = (LANG === 'zh') ? '欢迎, ' : 'Welcome, ';
+  el.textContent = prefix + name;
+}
+
+// same defaults as outer wrapper (keys UPPERCASE)
+const DEFAULT_ACCOUNTS = {
+  "ADMIN": "Fixline@123",
+  "BA55":  "Ba@01",
+  "ZB1":   "Zb@1122",
+  "DR1":   "Dr@2222",
+  "RTM12": "Rtm@123"
+};
+
+// who can access Settings / Change Password
+const SETTINGS_ALLOWED = ['ADMIN','BA55','ZB1','DR1'];
+
+if (!sessionStorage.getItem(AUTH_KEY)) {
+  location.href = 'login.html';
+}
+
+// current logged user (UPPERCASE)
+const CURRENT_USER = (sessionStorage.getItem(USER_KEY) || '').toUpperCase();
+
+function updateWelcomeUser(){
+  const el = document.getElementById('welcomeUser');
+  if (!el) return;
+
+  if (!CURRENT_USER){
+    el.textContent = '';
+    return;
+  }
+
+  // Make ADMIN look a bit nicer; others stay as their code (BA55, ZB1, etc.)
+  let name = CURRENT_USER;
+  if (CURRENT_USER === 'ADMIN') name = 'Admin';
+
+  const prefix = (LANG === 'zh') ? '欢迎, ' : 'Welcome, ';
+  el.textContent = prefix + name;
+}
+
+function loadAccounts() {
+  try {
+    const raw = window.localStorage.getItem(ACCOUNTS_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch(e) {}
+  const base = { ...DEFAULT_ACCOUNTS };
+  try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(base)); } catch(e) {}
+  return base;
+}
+
+function saveAccounts(map) {
+  try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(map)); } catch(e) {}
+}
 
 function powerMenu(){ const m=document.getElementById('powerMenu'); m.style.display = (m.style.display==="block")?"none":"block"; }
 /* Logout now notifies the parent wrapper to switch back to login */
 function logout(){
   sessionStorage.removeItem(AUTH_KEY);
   try{ window.parent?.postMessage?.({type:'FIXLINE_LOGOUT'}, '*'); }catch(e){}
-  location.href='login.html';
+  // no need for location.href here, the wrapper handles switching frames
 }
 function reboot(){ notifyWarn('Reboot requested. (Hook your backend if needed)'); }
 function poweroff(){ notifyError('Power off requested. (Hook your backend if needed)'); }
@@ -857,6 +1517,41 @@ async function apiPost(path, body){
   }
 }
 
+async function apiGet(path){
+  const A = getApi(); 
+  if (!A) throw new Error('no-base');
+
+  const build = (useQueryToken = false) => {
+    const url = A.base + path + (
+      useQueryToken && A.tk
+        ? (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(A.tk)
+        : ''
+    );
+    const headers = useQueryToken || !A.tk ? {} : { 'Authorization':'Bearer ' + A.tk };
+    return {
+      url,
+      opt: {
+        method:'GET',
+        headers,
+        mode:'cors',
+        cache:'no-store'
+      }
+    };
+  };
+
+  try{
+    const {url,opt} = build(false);
+    const r = await fetch(url,opt);
+    if (!r.ok) throw new Error((await r.text()) || r.statusText);
+    return r;
+  }catch(err){
+    const {url,opt} = build(true);
+    const r2 = await fetch(url,opt);
+    if (!r2.ok) throw new Error((await r2.text()) || r2.statusText);
+    return r2;
+  }
+}
+
 /* ===== Language (EN/中文) ===== */
 const LANG_KEY = 'fx_lang';
 let   LANG     = localStorage.getItem(LANG_KEY) || 'en';
@@ -873,11 +1568,88 @@ const I18N = {
     phBase: "API Base URL (e.g. https://win-xxxx.ts.net)",
     phToken: "Token (Bearer or ?token=)",
     phFilter: "Filter scripts… (type)",
-    intervalOptions: { "0":"Auto-refresh: Off","1000":"Auto-refresh: 1s","2000":"Auto-refresh: 2s","5000":"Auto-refresh: 5s","10000":"Auto-refresh: 10s","30000":"Auto-refresh: 30s" },
+    intervalOptions: {
+      "0":"Auto-refresh: Off",
+      "1000":"Auto-refresh: 1s",
+      "2000":"Auto-refresh: 2s",
+      "5000":"Auto-refresh: 5s",
+      "10000":"Auto-refresh: 10s",
+      "30000":"Auto-refresh: 30s"
+    },
     thScript:"Script", thPID:"CMD", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
     nodata:'No data yet. Click <b>Connect</b>.',
-    liveTime:"Live time"
+    liveTime:"Live time",
+
+    /* === Settings (EN) === */
+    settingsTitle: "Settings",
+    settingsSub: "Account security and personal preferences for this device.",
+    settingsMyPwd: "My password",
+    settingsLoggedInAs: "Logged in as",
+    settingsCurPwd: "Current password",
+    settingsNewPwd: "New password",
+    settingsConfirmPwd: "Confirm new password",
+    settingsStorageNote: "⚠ Passwords are stored only in this browser (localStorage). For each PC / browser you may need to update again.",
+    settingsSaveBtn: "Save",
+    settingsBackBtn: "Back",
+    settingsLastLogin: "Last login",
+
+    settingsPrefsTitle: "Preferences",
+    settingsPrefLang: "Dashboard language",
+    settingsPrefIdle: "Auto logout (idle)",
+    settingsPrefIdleNote: "Auto logout closes the dashboard if this tab is inactive.",
+    settingsPrefDensity: "Table density",
+    settingsDensityComfort: "Comfortable",
+    settingsDensityCompact: "Compact (more rows)",
+
+    settingsAdminTitle: "Admin tools",
+    settingsAdminNote: "As ADMIN you can reset passwords for other accounts on this device.",
+    settingsAdminSelect: "Select account",
+    settingsAdminNewPwd: "New password for selected account",
+    settingsAdminConfirmPwd: "Confirm new password",
+    settingsAdminSetBtn: "Set Password",
+    settingsAdminResetBtn: "Restore Default Passwords",
+    settingsAdminNote2: "🛈 These changes affect only this browser / this PC.",
+
+    idleOpt0: "Never",
+    idleOpt5: "After 5 minutes",
+    idleOpt10:"After 10 minutes",
+    idleOpt15:"After 15 minutes",
+    idleOpt30:"After 30 minutes",
+
+    navOverview: "Overview",
+    navFiles: "Files",
+    navSetting: "Settings",
+    navTasks: "Tasks",
+    navNotif: "Notification",
+    topChangePass: "Change Password",
+
+    settingsPwdStrength: "Password strength",
+    settingsPwdWeak: "Weak",
+    settingsPwdMedium: "Medium",
+    settingsPwdStrong: "Strong",
+
+    // Files (EN)
+    filesTitle: "Script files",
+    filesSub: "View, upload and edit Python scripts on this agent.",
+    filesListTitle: "Scripts on agent",
+    filesSearchLabel: "Search / filter",
+    filesSearchPlaceholder: "Filter by file name…",
+    filesUploadLabel: "Upload new script",
+    filesUploadButton: "Upload script",
+    filesUploadNote: "Files are sent to the agent API as multipart/form-data (field name: \"file\"). Existing files may be overwritten.",
+    filesColName: "File",
+    filesColSize: "Size",
+    filesColUpdated: "Last modified",
+    filesColActions: "Actions",
+    filesEditorTitle: "Editor",
+    filesEditorFileLabel: "Selected file",
+    filesEditorNoFile: "No file selected.",
+    filesEditorDiscard: "Discard",
+    filesEditorSave: "Save changes",
+    filesBackBtn: "Back",
+    filesNoFiles: "No scripts returned from API."
   },
+
   zh: {
     titleWelcome: "欢迎使用 FixLine 仪表盘",
     subText: "实时管理自动化脚本系统。",
@@ -889,10 +1661,86 @@ const I18N = {
     phBase: "API 基础地址（如 https://win-xxxx.ts.net）",
     phToken: "令牌（Bearer 或 ?token=）",
     phFilter: "过滤脚本…（输入类型）",
-    intervalOptions: { "0":"自动刷新：关闭","1000":"自动刷新：1秒","2000":"自动刷新：2秒","5000":"自动刷新：5秒","10000":"自动刷新：10秒","30000":"自动刷新：30秒" },
+    intervalOptions: {
+      "0":"自动刷新：关闭",
+      "1000":"自动刷新：1秒",
+      "2000":"自动刷新：2秒",
+      "5000":"自动刷新：5秒",
+      "10000":"自动刷新：10秒",
+      "30000":"自动刷新：30秒"
+    },
     thScript:"脚本", thPID:"CMD", thCPU:"CPU%", thRAM:"内存%", thUptime:"运行时长", thStatus:"状态", thActions:"操作",
     nodata:'暂无数据。请点击 <b>连接</b>。',
-    liveTime:"实时时间"
+    liveTime:"实时时间",
+
+    /* === Settings (ZH) === */
+    settingsTitle: "设置",
+    settingsSub: "此设备的账号安全和个人偏好。",
+    settingsMyPwd: "我的密码",
+    settingsLoggedInAs: "当前登录账号",
+    settingsCurPwd: "当前密码",
+    settingsNewPwd: "新密码",
+    settingsConfirmPwd: "确认新密码",
+    settingsStorageNote: "⚠ 密码只保存在本浏览器（localStorage）中。更换电脑 / 浏览器后需要重新设置。",
+    settingsSaveBtn: "保存",
+    settingsBackBtn: "返回",
+    settingsLastLogin: "上次登录",
+
+    settingsPrefsTitle: "偏好设置",
+    settingsPrefLang: "仪表盘语言",
+    settingsPrefIdle: "自动登出（空闲）",
+    settingsPrefIdleNote: "如果此标签页长时间无操作，将自动退出仪表盘。",
+    settingsPrefDensity: "表格行距",
+    settingsDensityComfort: "舒适",
+    settingsDensityCompact: "紧凑（显示更多行）",
+
+    settingsAdminTitle: "管理员工具",
+    settingsAdminNote: "作为 ADMIN，你可以为此设备上的其他账号重置密码。",
+    settingsAdminSelect: "选择账号",
+    settingsAdminNewPwd: "选中账号的新密码",
+    settingsAdminConfirmPwd: "确认新密码",
+    settingsAdminSetBtn: "设置密码",
+    settingsAdminResetBtn: "恢复默认密码",
+    settingsAdminNote2: "🛈 这些修改只影响当前浏览器 / 这台电脑。",
+
+    idleOpt0: "从不",
+    idleOpt5: "空闲 5 分钟后",
+    idleOpt10:"空闲 10 分钟后",
+    idleOpt15:"空闲 15 分钟后",
+    idleOpt30:"空闲 30 分钟后",
+
+    navOverview: "总览",
+    navFiles: "文件",
+    navSetting: "设置",
+    navTasks: "任务",
+    navNotif: "通知",
+    topChangePass: "修改密码",
+
+    settingsPwdStrength: "密码强度",
+    settingsPwdWeak: "弱",
+    settingsPwdMedium: "中",
+    settingsPwdStrong: "强",
+
+    // Files (ZH)
+    filesTitle: "脚本文件",
+    filesSub: "在此代理上查看、上传和编辑 Python 脚本。",
+    filesListTitle: "代理上的脚本",
+    filesSearchLabel: "搜索 / 过滤",
+    filesSearchPlaceholder: "按文件名过滤…",
+    filesUploadLabel: "上传新脚本",
+    filesUploadButton: "上传脚本",
+    filesUploadNote: "文件以 multipart/form-data（字段名 \"file\"）发送到代理 API，重名文件可能会被覆盖。",
+    filesColName: "文件",
+    filesColSize: "大小",
+    filesColUpdated: "最后修改时间",
+    filesColActions: "操作",
+    filesEditorTitle: "编辑器",
+    filesEditorFileLabel: "已选择的文件",
+    filesEditorNoFile: "未选择文件。",
+    filesEditorDiscard: "放弃修改",
+    filesEditorSave: "保存修改",
+    filesBackBtn: "返回",
+    filesNoFiles: "API 未返回任何脚本文件。"
   }
 };
 const t = (k)=> (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
@@ -902,6 +1750,8 @@ function applyLang(){
   document.documentElement.lang = LANG;
 
   const $id = (id)=>document.getElementById(id);
+
+  // Main dashboard top texts
   $id('i_title').textContent = S.titleWelcome;
   $id('i_sub').textContent   = S.subText;
   $id('i_agent').textContent = S.agentConnection;
@@ -934,11 +1784,123 @@ function applyLang(){
 
   const ll = $id('i_livetime_label'); if (ll) ll.textContent = S.liveTime;
 
+  // Language dropdown label + flag
   $id('langLabel').textContent = (LANG==='zh') ? '中文' : 'English';
   const lf = $id('langFlag');
   if (lf) lf.className = 'flag ' + (LANG==='zh' ? 'flag-cn' : 'flag-gb');
 
-  document.querySelectorAll('.lang-item').forEach(i => i.classList.toggle('active', i.dataset.lang===LANG));
+  document.querySelectorAll('.lang-item').forEach(i =>
+    i.classList.toggle('active', i.dataset.lang===LANG)
+  );
+
+  // ===== Settings texts =====
+  if ($id('i_settings_title'))        $id('i_settings_title').textContent        = S.settingsTitle;
+  if ($id('i_settings_sub'))          $id('i_settings_sub').textContent          = S.settingsSub;
+  if ($id('i_settings_mypass'))       $id('i_settings_mypass').textContent       = S.settingsMyPwd;
+  if ($id('i_settings_loggedin'))     $id('i_settings_loggedin').textContent     = S.settingsLoggedInAs;
+  if ($id('i_settings_curpwd'))       $id('i_settings_curpwd').textContent       = S.settingsCurPwd;
+  if ($id('i_settings_newpwd'))       $id('i_settings_newpwd').textContent       = S.settingsNewPwd;
+  if ($id('i_settings_confirmpwd'))   $id('i_settings_confirmpwd').textContent   = S.settingsConfirmPwd;
+  if ($id('i_settings_storage_note')) $id('i_settings_storage_note').textContent = S.settingsStorageNote;
+
+  if ($id('i_settings_prefs'))               $id('i_settings_prefs').textContent               = S.settingsPrefsTitle;
+  if ($id('i_settings_pref_lang_label'))     $id('i_settings_pref_lang_label').textContent     = S.settingsPrefLang;
+  if ($id('i_settings_pref_idle_label'))     $id('i_settings_pref_idle_label').textContent     = S.settingsPrefIdle;
+  if ($id('i_settings_pref_idle_note'))      $id('i_settings_pref_idle_note').textContent      = S.settingsPrefIdleNote;
+  if ($id('i_settings_pref_density_label'))  $id('i_settings_pref_density_label').textContent  = S.settingsPrefDensity;
+
+  if ($id('i_settings_admin_title'))         $id('i_settings_admin_title').textContent         = S.settingsAdminTitle;
+  if ($id('i_settings_admin_note'))          $id('i_settings_admin_note').textContent          = S.settingsAdminNote;
+  if ($id('i_settings_admin_select_label'))  $id('i_settings_admin_select_label').textContent  = S.settingsAdminSelect;
+  if ($id('i_settings_admin_new_label'))     $id('i_settings_admin_new_label').textContent     = S.settingsAdminNewPwd;
+  if ($id('i_settings_admin_confirm_label')) $id('i_settings_admin_confirm_label').textContent = S.settingsAdminConfirmPwd;
+  if ($id('i_settings_admin_note2'))         $id('i_settings_admin_note2').textContent         = S.settingsAdminNote2;
+
+  const saveBtn = $id('btnSavePass');
+  if (saveBtn) saveBtn.textContent = S.settingsSaveBtn;
+
+  const backBtn = $id('btnBackSettings');
+  if (backBtn) backBtn.textContent = S.settingsBackBtn;
+
+  // Idle dropdown labels
+  const idleSel = $id('prefIdle');
+  if (idleSel){
+    const o0  = idleSel.querySelector('option[value="0"]');
+    const o5  = idleSel.querySelector('option[value="5"]');
+    const o10 = idleSel.querySelector('option[value="10"]');
+    const o15 = idleSel.querySelector('option[value="15"]');
+    const o30 = idleSel.querySelector('option[value="30"]');
+    if (o0)  o0.textContent  = S.idleOpt0;
+    if (o5)  o5.textContent  = S.idleOpt5;
+    if (o10) o10.textContent = S.idleOpt10;
+    if (o15) o15.textContent = S.idleOpt15;
+    if (o30) o30.textContent = S.idleOpt30;
+  }
+
+    // Files panel
+  if ($id('i_files_title'))        $id('i_files_title').textContent        = S.filesTitle || 'Script files';
+  if ($id('i_files_sub'))          $id('i_files_sub').textContent          = S.filesSub || '';
+  if ($id('i_files_list_title'))   $id('i_files_list_title').textContent   = S.filesListTitle || 'Scripts on agent';
+  if ($id('i_files_search_label')) $id('i_files_search_label').textContent = S.filesSearchLabel || 'Search / filter';
+
+  const fs = $id('filesSearch');
+  if (fs && S.filesSearchPlaceholder) fs.placeholder = S.filesSearchPlaceholder;
+
+  if ($id('i_files_upload_label'))      $id('i_files_upload_label').textContent      = S.filesUploadLabel || 'Upload new script';
+  if ($id('i_files_upload_btn_label'))  $id('i_files_upload_btn_label').textContent  = S.filesUploadButton || 'Upload script';
+  if ($id('i_files_upload_note'))       $id('i_files_upload_note').textContent       = S.filesUploadNote || '';
+
+  if ($id('i_files_col_name'))    $id('i_files_col_name').textContent    = S.filesColName || 'File';
+  if ($id('i_files_col_size'))    $id('i_files_col_size').textContent    = S.filesColSize || 'Size';
+  if ($id('i_files_col_updated')) $id('i_files_col_updated').textContent = S.filesColUpdated || 'Last modified';
+  if ($id('i_files_col_actions')) $id('i_files_col_actions').textContent = S.filesColActions || 'Actions';
+
+  if ($id('i_files_editor_title'))       $id('i_files_editor_title').textContent       = S.filesEditorTitle || 'Editor';
+  if ($id('i_files_editor_file_label'))  $id('i_files_editor_file_label').textContent  = S.filesEditorFileLabel || 'Selected file';
+  if ($id('editorFilename'))             $id('editorFilename').textContent             = S.filesEditorNoFile || 'No file selected.';
+  if ($id('filesUploadName'))            $id('filesUploadName').textContent            = S.filesEditorNoFile || 'No file selected.';
+  if ($id('i_files_editor_discard_label'))$id('i_files_editor_discard_label').textContent = S.filesEditorDiscard || 'Discard';
+  if ($id('i_files_editor_save_label'))   $id('i_files_editor_save_label').textContent   = S.filesEditorSave || 'Save changes';
+  if ($id('i_files_back_label'))          $id('i_files_back_label').textContent          = S.filesBackBtn || 'Back';
+
+  // Density dropdown labels
+  const densSel = $id('prefDensity');
+  if (densSel){
+    const dn = densSel.querySelector('option[value="normal"]');
+    const dc = densSel.querySelector('option[value="compact"]');
+    if (dn) dn.textContent = S.settingsDensityComfort;
+    if (dc) dc.textContent = S.settingsDensityCompact;
+  }
+
+  // Nav labels
+  const navMap = [
+    ['navOverview','navOverview'],
+    ['navFiles','navFiles'],
+    ['navSetting','navSetting'],
+    ['navTasks','navTasks'],
+    ['navNotif','navNotif']
+  ];
+  navMap.forEach(([id,key])=>{
+    const el = $id(id);
+    if (el && S[key]) el.textContent = S[key];
+  });
+
+  // "Change Password" item in top-right menu
+  const topChange = $id('topChangePass');
+  if (topChange && S.topChangePass){
+    topChange.innerHTML = '<i class="fa-solid fa-unlock"></i> ' + S.topChangePass;
+  }
+
+  // Update "Welcome, USER" label in header
+  updateWelcomeUser();
+
+  // If password strength text is visible, re-render it in this language
+  if (window.FX_UPDATE_STRENGTH){
+    const pwdEl = $id('setNew');
+    if (pwdEl && pwdEl.value){
+      window.FX_UPDATE_STRENGTH(pwdEl.value);
+    }
+  }
 }
 function setLang(l){ LANG = l; localStorage.setItem(LANG_KEY,l); applyLang(); }
 
@@ -956,6 +1918,55 @@ document.querySelectorAll('.lang-item').forEach(btn=>{ btn.addEventListener('cli
 let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
 const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
+
+function applyTableDensity(mode){
+  const root = document.body;
+  if (!root) return;
+  root.classList.toggle('fx-compact-table', mode === 'compact');
+}
+
+function fxShowPanel(panelId){
+  const content = document.querySelector('.content');
+  if (!content) return;
+
+  const children = Array.from(content.children);
+
+  children.forEach(ch => {
+    const isPanel = (ch.id === 'settingsPanel' || ch.id === 'filesPanel');
+
+    // Show normal dashboard (no special panel)
+    if (!panelId){
+      if (isPanel){
+        ch.style.display = 'none';
+        ch.classList.remove('fullscreen');
+      }else{
+        const prev = ch.dataset.prevDisplay;
+        if (prev !== undefined){
+          ch.style.display = prev;
+        }else{
+          ch.style.display = ch.style.display || '';
+        }
+      }
+      return;
+    }
+
+    // Show one specific panel
+    if (isPanel){
+      if (ch.id === panelId){
+        ch.style.display = 'block';
+        ch.classList.add('fullscreen');
+      }else{
+        ch.style.display = 'none';
+        ch.classList.remove('fullscreen');
+      }
+    }else{
+      if (ch.dataset.prevDisplay === undefined){
+        ch.dataset.prevDisplay = ch.style.display || '';
+      }
+      ch.style.display = 'none';
+    }
+  });
+}
 
 /* ===== Confirm modal helper (top-drop) ===== */
 function fxConfirm(message){
@@ -1244,6 +2255,622 @@ document.querySelectorAll('th.sortable').forEach(th=>{
 
 document.addEventListener('keydown', (e)=>{ if (e.key.toLowerCase()==='r'){ loadOverview(); } if (e.key==='/'){ e.preventDefault(); document.getElementById('filter').focus(); } });
 
+// === SETTINGS / CHANGE PASSWORD LOGIC (NEW) =================
+function initSettingsUI(){
+  const panel      = document.getElementById('settingsPanel');
+  if (!panel) return;
+
+  const userLabel  = document.getElementById('settingsUser');
+  const lastLogin  = document.getElementById('lastLoginInfo');
+  const cur        = document.getElementById('setCur');
+  const np         = document.getElementById('setNew');
+  const np2        = document.getElementById('setNew2');
+  const btnSave    = document.getElementById('btnSavePass');
+  const btnBack    = document.getElementById('btnBackSettings');
+  const pwStrength = document.getElementById('pwStrength');
+
+  const prefLang    = document.getElementById('prefLang');
+  const prefIdle    = document.getElementById('prefIdle');
+  const prefDensity = document.getElementById('prefDensity');
+
+  const adminTools  = document.getElementById('adminTools');
+  const adminUser   = document.getElementById('adminUser');
+  const adminNew    = document.getElementById('adminNew');
+  const adminNew2   = document.getElementById('adminNew2');
+  const btnAdminSet = document.getElementById('btnAdminSetPass');
+  const btnAdminDef = document.getElementById('btnAdminResetDefaults');
+
+  const isAdmin = (CURRENT_USER === 'ADMIN');
+
+  function canUseSettings(){
+    return SETTINGS_ALLOWED.includes(CURRENT_USER);
+  }
+
+  function formatLocalDate(iso){
+    if (!iso) return '–';
+    const d = new Date(iso);
+    if (!isFinite(d.getTime())) return '–';
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} `
+         + `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function readIdleMinutes(){
+    try{
+      const raw = localStorage.getItem(IDLE_KEY);
+      const v = parseInt(raw,10);
+      return isNaN(v) ? 0 : Math.max(0,v);
+    }catch(e){ return 0; }
+  }
+
+  function updateStrength(pwd){
+    if (!pwStrength) return;
+
+    const S = I18N[LANG] || I18N.en;
+
+    if (!pwd){
+      pwStrength.textContent = '';
+      return;
+    }
+    let score = 0;
+    if (pwd.length >= 8) score++;
+    if (/[A-Z]/.test(pwd)) score++;
+    if (/[a-z]/.test(pwd)) score++;
+    if (/\d/.test(pwd)) score++;
+    if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+    let label, color;
+    if (score <= 2){ label = S.settingsPwdWeak;   color = '#f97373'; }
+    else if (score <= 3){ label = S.settingsPwdMedium; color = '#facc6b'; }
+    else { label = S.settingsPwdStrong; color = '#4ade80'; }
+
+    pwStrength.innerHTML = S.settingsPwdStrength + ': '
+      + '<span style="color:'+color+'">'+label+'</span>';
+  }
+
+  // expose so applyLang() can re-run it on language change
+  window.FX_UPDATE_STRENGTH = updateStrength;
+
+  function setupAdminTools(){
+    if (!adminTools) return;
+    if (!isAdmin){
+      adminTools.style.display = 'none';
+      return;
+    }
+    adminTools.style.display = 'block';
+    if (adminUser){
+      adminUser.innerHTML = '';
+      const accounts = loadAccounts();
+      Object.keys(accounts).sort().forEach(k => {
+        const opt = document.createElement('option');
+        opt.value = k;
+        opt.textContent = k;
+        adminUser.appendChild(opt);
+      });
+    }
+  }
+
+  function resetForm(){
+    if (userLabel) userLabel.textContent = CURRENT_USER || '-';
+
+    if (lastLogin){
+      const iso = localStorage.getItem(LAST_LOGIN_KEY);
+      const Slocal = I18N[LANG] || I18N.en;
+      lastLogin.textContent = (Slocal.settingsLastLogin || 'Last login') +
+        ': ' + formatLocalDate(iso);
+    }
+
+    if (cur) cur.value = '';
+    if (np)  np.value  = '';
+    if (np2) np2.value = '';
+    if (adminNew)  adminNew.value  = '';
+    if (adminNew2) adminNew2.value = '';
+    if (pwStrength) pwStrength.textContent = '';
+
+    if (prefLang){
+      prefLang.value = LANG || 'en';
+    }
+    if (prefIdle){
+      const idle = readIdleMinutes();
+      prefIdle.value = String(idle);
+      if (!prefIdle.querySelector(`option[value="${idle}"]`)){
+        prefIdle.value = '0';
+      }
+    }
+    if (prefDensity){
+      const d = localStorage.getItem(DENSITY_KEY) || 'normal';
+      prefDensity.value = d;
+    }
+  }
+
+  function openSettings(){
+    if (!canUseSettings()){
+      notifyWarn('This account cannot access Settings.');
+      return;
+    }
+    resetForm();
+    setupAdminTools();
+
+    fxShowPanel('settingsPanel');
+    sideNav(false);
+    panel.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+
+  function closeSettings(){
+    fxShowPanel(null);
+  }
+
+  // expose for other code (top menu / nav)
+  window.FX_OPEN_SETTINGS  = openSettings;
+  window.FX_CLOSE_SETTINGS = closeSettings;
+
+  // Back button
+  if (btnBack){
+    btnBack.addEventListener('click', (e)=>{
+      e.preventDefault();
+      closeSettings();
+    });
+  }
+
+  // Password strength live update
+  if (np){
+    np.addEventListener('input', ()=> updateStrength(np.value));
+  }
+
+  // Save my own password
+  if (btnSave){
+    btnSave.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if (!canUseSettings()){
+        notifyWarn('This account cannot access Settings.');
+        return;
+      }
+
+      const curVal  = cur.value  || '';
+      const newVal  = np.value   || '';
+      const new2Val = np2.value  || '';
+
+      if (!curVal || !newVal || !new2Val){
+        notifyWarn('Please fill in all fields.');
+        return;
+      }
+      if (newVal !== new2Val){
+        notifyWarn('New passwords do not match.');
+        return;
+      }
+      if (newVal.length < 8 || !/[A-Za-z]/.test(newVal) || !/\d/.test(newVal)){
+        notifyWarn('Password must be at least 8 characters and include letters & numbers.');
+        return;
+      }
+
+      const accounts = loadAccounts();
+      const key = CURRENT_USER;
+
+      if (!accounts[key] || accounts[key] !== curVal){
+        notifyError('Current password is not correct.');
+        return;
+      }
+
+      accounts[key] = newVal;
+      saveAccounts(accounts);
+      notifySuccess('Password updated. Next login will use the new password.');
+      resetForm();
+      closeSettings();
+    });
+  }
+
+  // ===== Preferences =====
+  if (prefLang){
+    prefLang.addEventListener('change', ()=>{
+      setLang(prefLang.value);
+    });
+  }
+
+  if (prefIdle){
+    prefIdle.addEventListener('change', ()=>{
+      const v = parseInt(prefIdle.value,10) || 0;
+      localStorage.setItem(IDLE_KEY, String(Math.max(0, v)));
+      notifyInfo(v ? `Auto logout set to ${v} minute(s).` : 'Auto logout disabled.');
+    });
+  }
+
+  if (prefDensity){
+    prefDensity.addEventListener('change', ()=>{
+      const mode = prefDensity.value === 'compact' ? 'compact' : 'normal';
+      localStorage.setItem(DENSITY_KEY, mode);
+      applyTableDensity(mode);
+    });
+  }
+
+  // ===== Admin tools =====
+  if (btnAdminSet){
+    btnAdminSet.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      if (!isAdmin){
+        notifyWarn('Only ADMIN can use these tools.');
+        return;
+      }
+
+      const target = adminUser ? adminUser.value : '';
+      const nv  = adminNew ? (adminNew.value || '') : '';
+      const nv2 = adminNew2 ? (adminNew2.value || '') : '';
+
+      if (!target || !nv || !nv2){
+        notifyWarn('Please fill in all admin fields.');
+        return;
+      }
+      if (nv !== nv2){
+        notifyWarn('New passwords do not match.');
+        return;
+      }
+      if (nv.length < 8 || !/[A-Za-z]/.test(nv) || !/\d/.test(nv)){
+        notifyWarn('Password must be at least 8 characters and include letters & numbers.');
+        return;
+      }
+
+      if (!(await fxConfirm(`Set a new password for "${target}"?`))) return;
+
+      const accounts = loadAccounts();
+      accounts[target] = nv;
+      saveAccounts(accounts);
+      notifySuccess(`Password for "${target}" updated. Next login will use the new password.`);
+      if (adminNew)  adminNew.value  = '';
+      if (adminNew2) adminNew2.value = '';
+    });
+  }
+
+  if (btnAdminDef){
+    btnAdminDef.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      if (!isAdmin){
+        notifyWarn('Only ADMIN can use these tools.');
+        return;
+      }
+
+      const ok = await fxConfirm(
+        'Restore ALL account passwords back to default values? This will overwrite any changes made on this device.'
+      );
+      if (!ok) return;
+
+      const fresh = { ...DEFAULT_ACCOUNTS };
+      saveAccounts(fresh);
+      notifySuccess('All account passwords reset to defaults for this browser.');
+      setupAdminTools();
+      if (adminNew)  adminNew.value  = '';
+      if (adminNew2) adminNew2.value = '';
+    });
+  }
+
+  // ===== Navigation wiring =====
+  const navSetting = document.getElementById('navSetting');
+  if (navSetting){
+    navSetting.addEventListener('click', (e)=>{
+      e.preventDefault();
+      openSettings();
+    });
+  }
+
+  const topChange = document.getElementById('topChangePass');
+  if (topChange){
+    topChange.addEventListener('click', (e)=>{
+      e.preventDefault();
+      openSettings();
+      const opt = document.getElementById('options');
+      if (opt) opt.style.display = 'none';
+    });
+  }
+
+  ['navOverview','navTasks','navNotif'].forEach(id=>{
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('click', (e)=>{
+      e.preventDefault();
+      // just go back to main dashboard
+      fxShowPanel(null);
+    });
+  });
+}
+
+// === FILES PANEL (scripts & editor) =========================
+function initFilesUI(){
+  const panel       = document.getElementById('filesPanel');
+  if (!panel) return;
+
+  const searchInput = document.getElementById('filesSearch');
+  const tableBody   = document.querySelector('#filesTable tbody');
+  const uploadInput = document.getElementById('fileUploadInput');
+  const uploadBtn   = document.getElementById('btnFilesUpload');
+  const uploadName  = document.getElementById('filesUploadName');
+  const editor      = document.getElementById('fileEditor');
+  const editorName  = document.getElementById('editorFilename');
+  const btnSave     = document.getElementById('btnEditorSave');
+  const btnDiscard  = document.getElementById('btnEditorDiscard');
+  const btnBack     = document.getElementById('btnBackFiles');
+
+  let files       = [];
+  let currentId   = null;
+  let currentText = '';
+  let dirty       = false;
+
+  function fmtBytes(bytes){
+    const n = Number(bytes);
+    if (!isFinite(n) || n < 0) return '—';
+    if (n < 1024) return n + ' B';
+    const kb = n / 1024;
+    if (kb < 1024) return kb.toFixed(1) + ' KB';
+    const mb = kb / 1024;
+    if (mb < 1024) return mb.toFixed(1) + ' MB';
+    const gb = mb / 1024;
+    return gb.toFixed(1) + ' GB';
+  }
+
+  function fmtDate(val){
+    if (!val) return '—';
+    let d;
+    if (typeof val === 'number'){
+      d = new Date(val < 1e12 ? val * 1000 : val);
+    }else{
+      d = new Date(val);
+    }
+    if (!isFinite(d.getTime())) return '—';
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  function markDirty(on){
+    dirty = !!on;
+    if (btnSave){
+      btnSave.disabled      = !dirty;
+      btnSave.style.opacity = dirty ? '1' : '.6';
+      btnSave.style.cursor  = dirty ? 'pointer' : 'default';
+    }
+  }
+
+  function refreshTable(){
+    if (!tableBody) return;
+    const q = (searchInput?.value || '').trim().toLowerCase();
+    const S = I18N[LANG] || I18N.en;
+    const noText = S.filesNoFiles || 'No scripts returned from API.';
+
+    let view = files.slice().sort((a,b)=> String(a.name||'').localeCompare(String(b.name||'')));
+    if (q){
+      view = view.filter(f =>
+        (f.name && f.name.toLowerCase().includes(q)) ||
+        (f.path && f.path.toLowerCase().includes(q))
+      );
+    }
+
+    tableBody.innerHTML = '';
+    if (!view.length){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td colspan="4" style="text-align:center; opacity:.75;">${noText}</td>`;
+      tableBody.appendChild(tr);
+      return;
+    }
+
+    view.forEach(f => {
+      const displayName = f.name || f.path || f.id;
+      const pathPart = f.path && f.path !== f.name
+        ? `<div class="file-path">${f.path}</div>` : '';
+      const id = String(f.id ?? f.name ?? displayName);
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${displayName}</strong>${pathPart}</td>
+        <td>${fmtBytes(f.size)}</td>
+        <td>${fmtDate(f.mtime || f.modified || f.updated_at)}</td>
+        <td>
+          <button class="fx-btn secondary btn-animated" data-file-open="${id}">Open</button>
+        </td>`;
+      tableBody.appendChild(tr);
+    });
+
+    tableBody.querySelectorAll('[data-file-open]').forEach(btn=>{
+      btn.addEventListener('click', ()=> openFile(btn.getAttribute('data-file-open')));
+    });
+  }
+
+  async function loadFiles(){
+    try{
+      showLoading(true);
+      const res = await apiGet('/api/files');
+      let data = [];
+      try{ data = await res.json(); }catch(_){ data = []; }
+      if (!Array.isArray(data)) data = [];
+      files = data;
+      refreshTable();
+    }catch(e){
+      console.error(e);
+      notifyError('Failed to load files: ' + (e.message || e));
+    }finally{
+      showLoading(false);
+    }
+  }
+
+  async function openFile(id){
+    if (!id) return;
+
+    if (dirty){
+      const ok = await fxConfirm('Discard unsaved changes in editor?');
+      if (!ok) return;
+    }
+
+    try{
+      showLoading(true);
+      const res  = await apiGet('/api/files/' + encodeURIComponent(id));
+      const text = await res.text();
+
+      currentId   = id;
+      currentText = text || '';
+      if (editor) editor.value = currentText;
+
+      if (editorName){
+        const meta = files.find(f => String(f.id ?? f.name) === String(id));
+        editorName.textContent = meta ? (meta.path || meta.name || id) : id;
+      }
+
+      markDirty(false);
+    }catch(e){
+      console.error(e);
+      notifyError('Failed to open file: ' + (e.message || e));
+    }finally{
+      showLoading(false);
+    }
+  }
+
+  async function saveFile(){
+    if (!currentId){
+      notifyWarn('Select a script from the list first.');
+      return;
+    }
+    const nextText = editor ? (editor.value || '') : '';
+    if (nextText === currentText){
+      markDirty(false);
+      notifyInfo('No changes to save.');
+      return;
+    }
+
+    try{
+      showLoading(true);
+      await apiPost('/api/files/' + encodeURIComponent(currentId), { code: nextText });
+      currentText = nextText;
+      markDirty(false);
+      notifySuccess('File saved.');
+      loadFiles();
+    }catch(e){
+      console.error(e);
+      notifyError('Save failed: ' + (e.message || e));
+    }finally{
+      showLoading(false);
+    }
+  }
+
+  async function uploadFile(file){
+    if (!file) return;
+
+    const ok = await fxConfirm(`Upload "${file.name}" to the agent?`);
+    if (!ok) return;
+
+    const A = getApi(); 
+    if (!A) return;
+
+    showLoading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    const path = '/api/files/upload';
+
+    const build = (useQuery)=> {
+      const url = A.base + path + (
+        useQuery && A.tk
+          ? (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(A.tk)
+          : ''
+      );
+      const headers = useQuery || !A.tk ? {} : { 'Authorization':'Bearer '+A.tk };
+      return { url, opt:{ method:'POST', headers, body:fd } };
+    };
+
+    try{
+      let {url,opt} = build(false);
+      let r = await fetch(url,opt);
+      if (!r.ok) throw new Error((await r.text()) || r.statusText);
+    }catch(err){
+      try{
+        const {url,opt} = build(true);
+        const r2 = await fetch(url,opt);
+        if (!r2.ok) throw new Error((await r2.text()) || r2.statusText);
+      }catch(err2){
+        console.error(err2);
+        notifyError('Upload failed: ' + (err2.message || err2));
+        showLoading(false);
+        return;
+      }
+    }
+
+    notifySuccess('Upload completed.');
+    showLoading(false);
+    await loadFiles();
+  }
+
+  function openPanel(){
+    fxShowPanel('filesPanel');
+    sideNav(false);
+    loadFiles();
+  }
+
+  function closePanel(){
+    fxShowPanel(null);
+  }
+
+  // === Wire events ===
+  if (searchInput){
+    searchInput.addEventListener('input', ()=> refreshTable());
+  }
+
+  if (uploadBtn && uploadInput){
+    uploadBtn.addEventListener('click', (e)=>{
+      e.preventDefault();
+      uploadInput.click();
+    });
+    uploadInput.addEventListener('change', ()=>{
+      const f = uploadInput.files && uploadInput.files[0];
+      const S = I18N[LANG] || I18N.en;
+      if (uploadName){
+        uploadName.textContent = f
+          ? f.name
+          : (S.filesEditorNoFile || 'No file selected.');
+      }
+      if (f) uploadFile(f);
+      uploadInput.value = '';
+    });
+  }
+
+  if (editor){
+    editor.addEventListener('input', ()=>{
+      if (!dirty && editor.value !== currentText) markDirty(true);
+      else if (dirty && editor.value === currentText) markDirty(false);
+    });
+  }
+
+  if (btnSave){
+    btnSave.addEventListener('click', (e)=>{
+      e.preventDefault();
+      saveFile();
+    });
+    markDirty(false);
+  }
+
+  if (btnDiscard){
+    btnDiscard.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      if (!dirty) return;
+      const ok = await fxConfirm('Discard unsaved changes?');
+      if (!ok) return;
+      if (editor) editor.value = currentText || '';
+      markDirty(false);
+    });
+  }
+
+  if (btnBack){
+    btnBack.addEventListener('click', (e)=>{
+      e.preventDefault();
+      closePanel();
+    });
+  }
+
+  const navFiles = document.getElementById('navFiles');
+  if (navFiles){
+    navFiles.addEventListener('click', (e)=>{
+      e.preventDefault();
+      openPanel();
+    });
+  }
+
+  // Expose for console / other code if needed
+  window.FX_OPEN_FILES  = openPanel;
+  window.FX_CLOSE_FILES = closePanel;
+}
+// ============================================================
+
 function setupAuto(){
   if(timer) clearInterval(timer);
   const ms=+document.getElementById('interval').value||0;
@@ -1252,12 +2879,30 @@ function setupAuto(){
 document.getElementById('interval').addEventListener('change', setupAuto);
 
 (function boot(){
-  const b = localStorage.getItem(LS_BASE)||''; const t = localStorage.getItem(LS_TOKEN)||''; const iv = localStorage.getItem(LS_INT)||'0';
-  if(document.getElementById('base')) document.getElementById('base').value = b;
-  if(document.getElementById('token')) document.getElementById('token').value = t;
-  if(document.getElementById('interval')) document.getElementById('interval').value = iv;
+  const b  = localStorage.getItem(LS_BASE)||''; 
+  const t  = localStorage.getItem(LS_TOKEN)||''; 
+  const iv = localStorage.getItem(LS_INT)||'0';
+
+  if (document.getElementById('base'))     document.getElementById('base').value     = b;
+  if (document.getElementById('token'))    document.getElementById('token').value    = t;
+  if (document.getElementById('interval')) document.getElementById('interval').value = iv;
+
+  initTheme();
+
+  // optional: remember compact/normal rows across reloads
+  try{
+    const savedDensity = localStorage.getItem(DENSITY_KEY) || 'normal';
+    applyTableDensity(savedDensity);
+  }catch(e){}
+
   applyLang();
-  if (b && t) { loadOverview().catch(()=>{}); setupAuto(); }
+  initSettingsUI();
+  initFilesUI();   // <--- add this line
+
+  if (b && t) { 
+    loadOverview().catch(()=>{}); 
+    setupAuto(); 
+  }
 })();
 </script>
 </body>
@@ -1268,6 +2913,39 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 (function(){
   const AUTH_KEY = 'fixline_auth';
   const REM_KEY  = 'fixline_remember';
+  const IDLE_KEY       = 'fixline_idle_minutes';
+  const LAST_LOGIN_KEY = 'fixline_last_login';
+
+  // === Account config (all login users) ======================
+  const ACCOUNTS_KEY = 'fixline_accounts';
+
+  // store keys in UPPERCASE (login is case-insensitive)
+  const DEFAULT_ACCOUNTS = {
+    "ADMIN": "Fixline@123",
+    "BA55":  "Ba@01",
+    "ZB1":   "Zb@1122",
+    "DR1":   "Dr@2222",
+    "RTM12": "Rtm@123"
+  };
+
+  function loadAccounts() {
+    try {
+      const raw = window.localStorage.getItem(ACCOUNTS_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
+      }
+    } catch(e) {}
+    // if empty/broken, reset defaults
+    const base = { ...DEFAULT_ACCOUNTS };
+    try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(base)); } catch(e) {}
+    return base;
+  }
+
+  function saveAccounts(map) {
+    try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(map)); } catch(e) {}
+  }
+  // ===========================================================
   const loginFrame = document.getElementById('loginFrame');
   const dashFrame  = document.getElementById('dashFrame');
 
@@ -1329,6 +3007,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
         }
       }catch(e){}
 
+      // --- LOGIN submit (multi-account) ----------------------
       form.addEventListener('submit', (ev) => {
         ev.preventDefault();
         ev.stopImmediatePropagation();
@@ -1339,22 +3018,29 @@ document.getElementById('interval').addEventListener('change', setupAuto);
           setTimeout(() => wrap.classList.remove('play'), 900);
         }
 
-        const u = (doc.getElementById('user')?.value || '').trim();
-        const p = (doc.getElementById('pass')?.value || '');
+        const uRaw = (doc.getElementById('user')?.value || '').trim();
+        const p    = (doc.getElementById('pass')?.value || '');
         const remember = !!doc.getElementById('remember')?.checked;
 
-        if (u === 'admin' && p === 'Fixline@123'){
-          // Save or clear Remember me
+        const usernameKey = uRaw.toUpperCase();   // case-insensitive
+        const accounts    = loadAccounts();
+
+        if (accounts[usernameKey] && accounts[usernameKey] === p){
+          // Remember-me
           try{
             if (remember){
-              window.localStorage.setItem(REM_KEY, JSON.stringify({u,p,remember:true}));
+              window.localStorage.setItem(REM_KEY, JSON.stringify({u:uRaw,p,remember:true}));
             }else{
               window.localStorage.removeItem(REM_KEY);
             }
           }catch(e){}
 
-          // Per-tab auth (refresh safe, new tab requires login again)
+          // Per-tab auth + store CURRENT USER
           sessionStorage.setItem(AUTH_KEY,'1');
+          sessionStorage.setItem('fixline_user', usernameKey);
+          try{
+           window.localStorage.setItem(LAST_LOGIN_KEY, new Date().toISOString());
+          }catch(e){}
           showLoader(1200, showApp);
         } else {
           if (typeof win.toast === 'function'){
@@ -1362,6 +3048,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
           }
         }
       }, true);
+      // -------------------------------------------------------
     }catch(e){}
   });
 
@@ -1384,6 +3071,52 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 
   // When user refreshes this tab, if we still have auth in *this tab*,
   // skip login and go straight to dashboard.
+    // ===== Idle auto-logout (based on IDLE_KEY from dashboard) =====
+  let idleMinutes = 0;
+  let lastActivity = Date.now();
+
+  function readIdleSetting(){
+    try{
+      const raw = window.localStorage.getItem(IDLE_KEY);
+      const v = parseInt(raw, 10);
+      idleMinutes = isNaN(v) ? 0 : Math.max(0, v);
+    }catch(e){
+      idleMinutes = 0;
+    }
+  }
+
+  function resetActivity(){
+    lastActivity = Date.now();
+  }
+
+  function checkIdle(){
+    if (!sessionStorage.getItem(AUTH_KEY)) return; // not logged in
+    if (!idleMinutes) return;                      // 0 = off
+    const diff = Date.now() - lastActivity;
+    if (diff >= idleMinutes * 60 * 1000){
+      // Auto logout flow (same as manual logout)
+      sessionStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem('fixline_user');
+      showLoader(600, () => {
+        dashFrame.style.display = 'none';
+        loginFrame.style.display = 'block';
+        loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
+        dashFrame.removeAttribute('data-loaded');
+        dashFrame.srcdoc = '';
+      });
+    }
+  }
+
+  ['mousemove','keydown','click','touchstart'].forEach(ev => {
+    window.addEventListener(ev, resetActivity, true);
+  });
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === IDLE_KEY) readIdleSetting();
+  });
+
+  readIdleSetting();
+  setInterval(checkIdle, 30000);
   if (sessionStorage.getItem(AUTH_KEY)) {
     showLoader(400, showApp);
   }
