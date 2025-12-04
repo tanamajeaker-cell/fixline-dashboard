@@ -383,6 +383,16 @@ html { overflow:auto; }
   min-height:calc(100vh - 4em - 2em);
 }
 
+/* Full-screen layout when MONITOR page is opened */
+#monitorPanel.fullscreen{
+  margin:0 -1em;
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  padding:24px 24px 32px;
+  min-height:calc(100vh - 4em - 2em);
+}
+
 /* ===== Settings layout (clean two-column) ===== */
 .settings-layout{
   display:flex;
@@ -461,7 +471,11 @@ html { overflow:auto; }
 
 .code-editor{
   width:100%;
-  min-height:260px;
+  /* make the editor much taller by default */
+  min-height:520px;
+  /* let it grow inside the flex column (Editor section) */
+  flex:1 1 auto;
+
   background:#050608;
   color:#e5e7eb;
   border-radius:8px;
@@ -975,7 +989,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
     <li><a href="#" id="navOverview">OVERVIEW</a></li>
     <li><a href="#" id="navFiles">FILES</a></li>
     <li><a href="#" id="navSetting">SETTING</a></li>
-    <li><a href="#" id="navTasks">TASKS</a></li>
+    <li><a href="#" id="navMonitor">Monitor</a></li>
     <li><a href="#" id="navNotif">NOTIFICATION</a></li>
   </ul>
 </div>
@@ -993,60 +1007,141 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 </div>
 
 <div class="content">
-  <h2 id="i_title">Welcome to Fixline Dashboard</h2>
-  <p id="i_sub" style="margin-bottom:12px; opacity:.85">Real-time Managing Automation Scripts System.</p>
+  <!-- ===== NEW OVERVIEW DASHBOARD (default when opening FixLine) ===== -->
+  <div id="overviewPanel" class="fx-card">
+    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:stretch;">
+      <!-- Left: intro + shortcuts -->
+      <div style="flex:1.7 1 260px;min-width:260px;">
+        <h2 id="i_overview_title" style="margin-bottom:6px;">FixLine Overview</h2>
+        <p id="i_overview_sub" style="opacity:.85;margin-bottom:10px;">
+          Summary of your scripts and quick shortcuts.
+        </p>
 
-  <div class="fx-card">
-    <h3 id="i_agent">Agent Connection</h3>
-    <div class="fx-row" style="margin-bottom:8px;">
-      <input id="base" placeholder="API Base URL (e.g. https://win-xxxx.ts.net)" style="min-width:320px;">
-      <input id="token" placeholder="Token (Bearer or ?token=)" style="min-width:260px;">
-      <select id="interval">
-        <option value="0">Auto-refresh: Off</option>
-        <option value="1000">Auto-refresh: 1s</option>
-        <option value="2000">Auto-refresh: 2s</option>
-        <option value="5000">Auto-refresh: 5s</option>
-        <option value="10000">Auto-refresh: 10s</option>
-        <option value="30000">Auto-refresh: 30s</option>
-      </select>
-      <input id="filter" placeholder="Filter scripts… (type)">
-      <button id="connect" class="fx-btn ok btn-animated">Connect</button>
-      <button id="refresh" class="fx-btn secondary btn-animated">Refresh</button>
-    </div>
-    <div class="fx-kpis">
-      <div class="fx-kpi"><small id="i_k_total">Total Scripts</small><strong id="k_total">—</strong></div>
-      <div class="fx-kpi"><small id="i_k_running">Running</small><strong id="k_run">—</strong></div>
-      <div class="fx-kpi"><small id="i_k_stalled">Stalled</small><strong id="k_stalled">—</strong></div>
-      <div class="fx-kpi"><small id="i_k_exited">Exited</small><strong id="k_exited">—</strong></div>
+        <p id="i_overview_intro"
+           style="font-size:.9rem;opacity:.9;margin-bottom:8px;">
+          Use this page as a quick overview. For full control go to the Monitor page.
+        </p>
+
+        <ul style="font-size:.85rem;opacity:.9;margin-left:1rem;list-style:disc;">
+          <li id="i_overview_tip1">Monitor and control automation scripts in real time.</li>
+          <li id="i_overview_tip2">Open Monitor to start / stop scripts and view logs.</li>
+          <li id="i_overview_tip3">Use the Files page to upload and edit scripts on the agent.</li>
+        </ul>
+
+        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="fx-btn ok btn-animated" id="btnGoMonitor" type="button">
+            <i class="fa-solid fa-display" style="margin-right:.35rem;"></i>
+            <span id="i_overview_go_monitor">Open Monitor</span>
+          </button>
+          <button class="fx-btn secondary btn-animated" id="btnGoFiles" type="button">
+            <i class="fa-solid fa-file-code" style="margin-right:.35rem;"></i>
+            <span id="i_overview_go_files">Script files</span>
+          </button>
+          <button class="fx-btn secondary btn-animated" id="btnGoSettings" type="button">
+            <i class="fa-solid fa-gear" style="margin-right:.35rem;"></i>
+            <span id="i_overview_go_settings">Settings</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: high-level stats (mirror of Monitor counters) -->
+      <div style="flex:1.2 1 240px;min-width:220px;">
+        <div class="fx-kpis">
+          <div class="fx-kpi">
+            <small id="i_k_total_ov">Total Scripts</small>
+            <strong id="ov_total">—</strong>
+          </div>
+          <div class="fx-kpi">
+            <small id="i_k_running_ov">Running</small>
+            <strong id="ov_run">—</strong>
+          </div>
+          <div class="fx-kpi">
+            <small id="i_k_stalled_ov">Stalled</small>
+            <strong id="ov_stalled">—</strong>
+          </div>
+          <div class="fx-kpi">
+            <small id="i_k_exited_ov">Exited</small>
+            <strong id="ov_exited">—</strong>
+          </div>
+        </div>
+        <p id="i_overview_stats_hint"
+           style="font-size:.78rem;opacity:.75;margin-top:8px;">
+          Stats are updated when you connect to an agent on the Monitor page.
+        </p>
+      </div>
     </div>
   </div>
 
-  <div class="fx-card">
-    <div class="fx-actions">
-      <span id="i_actions_title" style="font-weight:800; color:#fff;">IMPORTANT ACTIONS</span>
-      <button class="fx-btn ok btn-animated" id="adopt" title="Enable Auto Running for ALL">Auto Running</button>
-      <button class="fx-btn warn btn-animated" id="restartAll">Restart All</button>
-      <button class="fx-btn danger btn-animated" id="stopAll">Stop All</button>
-      <button class="fx-btn ghost btn-animated" id="copyCurl">Copy Data URL</button>
+  <!-- === MONITOR PANEL (OLD MAIN DASHBOARD MOVED HERE) === -->
+  <div id="monitorPanel" class="fx-card" style="display:none; margin-top:10px;">
+    <h3 id="i_monitor_title" style="margin-bottom:6px;">Monitor</h3>
+    <p id="i_monitor_sub" style="margin-bottom:12px; opacity:.85;">
+      Detailed view for script status, actions and live CMD / logs.
+    </p>
+
+    <!-- The original main dashboard is now inside MONITOR -->
+    <h2 id="i_title" style="margin-bottom:6px;">Welcome to Fixline Dashboard</h2>
+    <p id="i_sub" style="margin-bottom:12px; opacity:.85;">
+      Real-time Managing Automation Scripts System.
+    </p>
+
+    <div class="fx-card">
+      <h3 id="i_agent">Agent Connection</h3>
+      <div class="fx-row" style="margin-bottom:8px;">
+        <input id="base" placeholder="API Base URL (e.g. https://win-xxxx.ts.net)" style="min-width:320px;">
+        <input id="token" placeholder="Token (Bearer or ?token=)" style="min-width:260px;">
+        <select id="interval">
+          <option value="0">Auto-refresh: Off</option>
+          <option value="1000">Auto-refresh: 1s</option>
+          <option value="2000">Auto-refresh: 2s</option>
+          <option value="5000">Auto-refresh: 5s</option>
+          <option value="10000">Auto-refresh: 10s</option>
+          <option value="30000">Auto-refresh: 30s</option>
+        </select>
+        <input id="filter" placeholder="Filter scripts… (type)">
+        <button id="connect" class="fx-btn ok btn-animated">Connect</button>
+        <button id="refresh" class="fx-btn secondary btn-animated">Refresh</button>
+      </div>
+      <div class="fx-kpis">
+        <div class="fx-kpi"><small id="i_k_total">Total Scripts</small><strong id="k_total">—</strong></div>
+        <div class="fx-kpi"><small id="i_k_running">Running</small><strong id="k_run">—</strong></div>
+        <div class="fx-kpi"><small id="i_k_stalled">Stalled</small><strong id="k_stalled">—</strong></div>
+        <div class="fx-kpi"><small id="i_k_exited">Exited</small><strong id="k_exited">—</strong></div>
+      </div>
+    </div>
+
+    <div class="fx-card">
+      <div class="fx-actions">
+        <span id="i_actions_title" style="font-weight:800; color:#fff;">IMPORTANT ACTIONS</span>
+        <button class="fx-btn ok btn-animated" id="adopt" title="Enable Auto Running for ALL">Auto Running</button>
+        <button class="fx-btn warn btn-animated" id="restartAll">Restart All</button>
+        <button class="fx-btn danger btn-animated" id="stopAll">Stop All</button>
+        <button class="fx-btn ghost btn-animated" id="copyCurl">Copy Data URL</button>
+      </div>
+    </div>
+
+    <div class="fx-card" style="overflow:auto;">
+      <table id="tbl" class="fx-table">
+        <thead>
+          <tr>
+            <th id="th_script"  class="sortable" data-key="name">Script</th>
+            <th id="th_pid">CMD</th>
+            <th id="th_cpu"     class="sortable" data-key="cpu">CPU%</th>
+            <th id="th_ram"     class="sortable" data-key="mem">RAM%</th>
+            <th id="th_uptime"  class="sortable" data-key="uptime">Uptime</th>
+            <th id="th_status"  class="sortable" data-key="status">Status</th>
+            <th id="th_actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="settings-footer" style="margin-top:10px;">
+      <button class="fx-btn secondary" id="btnBackMonitor" type="button">Back</button>
     </div>
   </div>
-
-<div class="fx-card" style="overflow:auto;">
-  <table id="tbl" class="fx-table">
-    <thead>
-      <tr>
-        <th id="th_script"  class="sortable" data-key="name">Script</th>
-        <th id="th_pid">CMD</th>
-        <th id="th_cpu"     class="sortable" data-key="cpu">CPU%</th>
-        <th id="th_ram"     class="sortable" data-key="mem">RAM%</th>
-        <th id="th_uptime"  class="sortable" data-key="uptime">Uptime</th>
-        <th id="th_status"  class="sortable" data-key="status">Status</th>
-        <th id="th_actions">Actions</th>
-      </tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-</div>
+  <!-- === END MONITOR PANEL === -->
 
   <!-- === SETTINGS PANEL (ACCOUNT + PREFS + ADMIN) === -->
   <div id="settingsPanel" class="fx-card" style="display:none; margin-top:10px;">
@@ -1168,7 +1263,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   </div>
   <!-- === END SETTINGS PANEL === -->
 
-    <!-- === FILES PANEL (SCRIPTS LIST + EDITOR) === -->
+  <!-- === FILES PANEL (SCRIPTS LIST + EDITOR) === -->
   <div id="filesPanel" class="fx-card" style="display:none; margin-top:10px;">
     <h3 id="i_files_title">Script files</h3>
     <p id="i_files_sub" style="margin-bottom:12px; opacity:.85;">
@@ -1245,10 +1340,7 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
     </div>
   </div>
   <!-- === END FILES PANEL === -->
-
-</div>
-
-<footer>FixLine © 2025 | The BA Support</footer>
+</div> <!-- end .content -->
 
 <!-- Toasts -->
 <div id="toast" class="toast"></div>
@@ -1297,6 +1389,16 @@ const IDLE_KEY       = 'fixline_idle_minutes';
 const LAST_LOGIN_KEY = 'fixline_last_login';
 const DENSITY_KEY    = 'fixline_table_density';
 const THEME_KEY = 'fx_theme';   // 'light' or 'dark'
+// Bridge activity events from dashboard iframe to parent (for idle logout)
+(function setupIdleBridge(){
+  ['mousemove','keydown','click','touchstart'].forEach(ev => {
+    window.addEventListener(ev, () => {
+      try {
+        window.parent?.postMessage?.({ type: 'FX_ACTIVITY' }, '*');
+      } catch(e){}
+    }, true);
+  });
+})();
 
 /* ===== Theme handling (light / dark) ===== */
 function applyTheme(theme){
@@ -1340,22 +1442,6 @@ function initTheme(){
 }
 
 /* existing code continues after this… */
-
-function updateWelcomeUser(){
-  const el = document.getElementById('welcomeUser');
-  if (!el) return;
-
-  if (!CURRENT_USER){
-    el.textContent = '';
-    return;
-  }
-
-  let name = CURRENT_USER;
-  if (CURRENT_USER === 'ADMIN') name = 'Admin';
-
-  const prefix = (LANG === 'zh') ? '欢迎, ' : 'Welcome, ';
-  el.textContent = prefix + name;
-}
 
 // same defaults as outer wrapper (keys UPPERCASE)
 const DEFAULT_ACCOUNTS = {
@@ -1579,6 +1665,18 @@ const I18N = {
     thScript:"Script", thPID:"CMD", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
     nodata:'No data yet. Click <b>Connect</b>.',
     liveTime:"Live time",
+    overviewTitle: "FixLine Overview",
+overviewSub: "Summary of your scripts and quick shortcuts.",
+overviewIntro: "Use this page as a quick overview. For full control go to the Monitor page.",
+overviewTip1: "Monitor and control automation scripts in real time.",
+overviewTip2: "Open Monitor to start / stop scripts and view logs.",
+overviewTip3: "Use the Files page to upload and edit scripts on this agent.",
+overviewGoMonitor: "Open Monitor",
+overviewGoFiles: "Script files",
+overviewGoSettings: "Settings",
+overviewStatsHint: "Stats are updated when you connect to an agent on the Monitor page.",
+monitorTitle: "Monitor",
+monitorSub: "Detailed view for script status, actions and live CMD/logs.",
 
     /* === Settings (EN) === */
     settingsTitle: "Settings",
@@ -1619,7 +1717,7 @@ const I18N = {
     navOverview: "Overview",
     navFiles: "Files",
     navSetting: "Settings",
-    navTasks: "Tasks",
+    navMonitor: "Monitor",
     navNotif: "Notification",
     topChangePass: "Change Password",
 
@@ -1672,6 +1770,18 @@ const I18N = {
     thScript:"脚本", thPID:"CMD", thCPU:"CPU%", thRAM:"内存%", thUptime:"运行时长", thStatus:"状态", thActions:"操作",
     nodata:'暂无数据。请点击 <b>连接</b>。',
     liveTime:"实时时间",
+    overviewTitle: "FixLine 总览",
+overviewSub: "脚本概况和快捷入口。",
+overviewIntro: "此页面用于快速总览。如需完整控制，请打开“监视器”页。",
+overviewTip1: "实时查看并控制自动化脚本。",
+overviewTip2: "在“监视器”中启动 / 停止脚本并查看日志。",
+overviewTip3: "在“文件”页上传或编辑代理上的脚本。",
+overviewGoMonitor: "打开监视器",
+overviewGoFiles: "脚本文件",
+overviewGoSettings: "设置",
+overviewStatsHint: "当你在“监视器”中连接代理时，这里的统计会更新。",
+monitorTitle: "监视器",
+monitorSub: "脚本状态、操作以及 CMD / 日志的详细视图。",
 
     /* === Settings (ZH) === */
     settingsTitle: "设置",
@@ -1712,7 +1822,7 @@ const I18N = {
     navOverview: "总览",
     navFiles: "文件",
     navSetting: "设置",
-    navTasks: "任务",
+    navMonitor: "监视器",
     navNotif: "通知",
     topChangePass: "修改密码",
 
@@ -1877,7 +1987,7 @@ function applyLang(){
     ['navOverview','navOverview'],
     ['navFiles','navFiles'],
     ['navSetting','navSetting'],
-    ['navTasks','navTasks'],
+    ['navMonitor','navMonitor'],
     ['navNotif','navNotif']
   ];
   navMap.forEach(([id,key])=>{
@@ -1926,46 +2036,35 @@ function applyTableDensity(mode){
 }
 
 function fxShowPanel(panelId){
-  const content = document.querySelector('.content');
-  if (!content) return;
+  const overview = document.getElementById('overviewPanel');
+  const settings = document.getElementById('settingsPanel');
+  const files    = document.getElementById('filesPanel');
+  const monitor  = document.getElementById('monitorPanel');
 
-  const children = Array.from(content.children);
-
-  children.forEach(ch => {
-    const isPanel = (ch.id === 'settingsPanel' || ch.id === 'filesPanel');
-
-    // Show normal dashboard (no special panel)
-    if (!panelId){
-      if (isPanel){
-        ch.style.display = 'none';
-        ch.classList.remove('fullscreen');
-      }else{
-        const prev = ch.dataset.prevDisplay;
-        if (prev !== undefined){
-          ch.style.display = prev;
-        }else{
-          ch.style.display = ch.style.display || '';
-        }
-      }
-      return;
-    }
-
-    // Show one specific panel
-    if (isPanel){
-      if (ch.id === panelId){
-        ch.style.display = 'block';
-        ch.classList.add('fullscreen');
-      }else{
-        ch.style.display = 'none';
-        ch.classList.remove('fullscreen');
-      }
-    }else{
-      if (ch.dataset.prevDisplay === undefined){
-        ch.dataset.prevDisplay = ch.style.display || '';
-      }
-      ch.style.display = 'none';
-    }
+  // Hide special panels
+  [settings, files, monitor].forEach(el => {
+    if (!el) return;
+    el.style.display = 'none';
+    el.classList.remove('fullscreen');
   });
+
+  // Overview is visible only when no special panel is requested
+  if (overview){
+    overview.style.display = panelId ? 'none' : 'block';
+  }
+
+  if (!panelId) return;
+
+  if (panelId === 'settingsPanel' && settings){
+    settings.style.display = 'block';
+    settings.classList.add('fullscreen');
+  } else if (panelId === 'filesPanel' && files){
+    files.style.display = 'block';
+    files.classList.add('fullscreen');
+  } else if (panelId === 'monitorPanel' && monitor){
+    monitor.style.display = 'block';
+    monitor.classList.add('fullscreen');
+  }
 }
 
 /* ===== Confirm modal helper (top-drop) ===== */
@@ -2016,10 +2115,30 @@ function renderRows(rows){
   const filtered = currentRows.filter(x=> !filter || (x.name||'').toLowerCase().includes(filter));
   const view = sortRows(filtered);
 
-  document.getElementById('k_total').textContent=currentRows.length;
-  document.getElementById('k_run').textContent=currentRows.filter(x=>x.status==='running'||x.status==='adopted').length;
-  document.getElementById('k_stalled').textContent=currentRows.filter(x=>x.status==='stalled').length;
-  document.getElementById('k_exited').textContent=currentRows.filter(x=>x.status==='exited').length;
+  const total   = currentRows.length;
+  const running = currentRows.filter(x => x.status==='running' || x.status==='adopted').length;
+  const stalled = currentRows.filter(x => x.status==='stalled').length;
+  const exited  = currentRows.filter(x => x.status==='exited').length;
+
+  const kTotal   = document.getElementById('k_total');
+  const kRun     = document.getElementById('k_run');
+  const kStalled = document.getElementById('k_stalled');
+  const kExited  = document.getElementById('k_exited');
+
+  if (kTotal)   kTotal.textContent   = total;
+  if (kRun)     kRun.textContent     = running;
+  if (kStalled) kStalled.textContent = stalled;
+  if (kExited)  kExited.textContent  = exited;
+
+  const ovTotal   = document.getElementById('ov_total');
+  const ovRun     = document.getElementById('ov_run');
+  const ovStalled = document.getElementById('ov_stalled');
+  const ovExited  = document.getElementById('ov_exited');
+
+  if (ovTotal)   ovTotal.textContent   = total;
+  if (ovRun)     ovRun.textContent     = running;
+  if (ovStalled) ovStalled.textContent = stalled;
+  if (ovExited)  ovExited.textContent  = exited;
 
   const tb=document.getElementById('tbody'); tb.innerHTML='';
   if(view.length===0){
@@ -2560,12 +2679,12 @@ function initSettingsUI(){
     });
   }
 
-  ['navOverview','navTasks','navNotif'].forEach(id=>{
+  // Overview + Notification just go back to the main dashboard
+  ['navOverview','navNotif'].forEach(id=>{
     const el = document.getElementById(id);
     if (!el) return;
     el.addEventListener('click', (e)=>{
       e.preventDefault();
-      // just go back to main dashboard
       fxShowPanel(null);
     });
   });
@@ -2661,12 +2780,21 @@ function initFilesUI(){
         <td>${fmtDate(f.mtime || f.modified || f.updated_at)}</td>
         <td>
           <button class="fx-btn secondary btn-animated" data-file-open="${id}">Open</button>
+          <button class="fx-btn danger btn-animated" style="margin-left:6px;" data-file-delete="${id}">Delete</button>
         </td>`;
       tableBody.appendChild(tr);
     });
 
-    tableBody.querySelectorAll('[data-file-open]').forEach(btn=>{
-      btn.addEventListener('click', ()=> openFile(btn.getAttribute('data-file-open')));
+    tableBody.querySelectorAll('[data-file-open]').forEach(btn => {
+      btn.addEventListener('click', () =>
+        openFile(btn.getAttribute('data-file-open'))
+      );
+    });
+
+    tableBody.querySelectorAll('[data-file-delete]').forEach(btn => {
+      btn.addEventListener('click', () =>
+        deleteFile(btn.getAttribute('data-file-delete'))
+      );
     });
   }
 
@@ -2713,6 +2841,74 @@ function initFilesUI(){
     }catch(e){
       console.error(e);
       notifyError('Failed to open file: ' + (e.message || e));
+    }finally{
+      showLoading(false);
+    }
+  }
+    async function deleteFile(id){
+    if (!id) return;
+
+    // Find file info for nice name in confirm dialog
+    const meta = files.find(f => String(f.id ?? f.name) === String(id));
+    const displayName = meta ? (meta.path || meta.name || id) : id;
+
+    const ok = await fxConfirm(
+      `Delete script "${displayName}" from this agent?\nThis cannot be undone.`
+    );
+    if (!ok) return;
+
+    const A = getApi();
+    if (!A) return;
+
+    const path = '/api/files/' + encodeURIComponent(id);
+
+    const build = (useQueryToken) => {
+      const url = A.base + path + (
+        useQueryToken && A.tk
+          ? (path.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(A.tk)
+          : ''
+      );
+      const headers = useQueryToken || !A.tk ? {} : { 'Authorization':'Bearer '+A.tk };
+      return {
+        url,
+        opt: {
+          method: 'DELETE',
+          headers
+        }
+      };
+    };
+
+    showLoading(true);
+    try{
+      // try Authorization header first
+      let {url,opt} = build(false);
+      let r = await fetch(url,opt);
+      if (!r.ok){
+        // fallback: token in query string
+        ({url,opt} = build(true));
+        r = await fetch(url,opt);
+        if (!r.ok) throw new Error((await r.text()) || r.statusText);
+      }
+
+      // Remove from local list
+      files = files.filter(f => String(f.id ?? f.name) !== String(id));
+
+      // If this file was open in editor, clear editor
+      if (currentId === id){
+        currentId   = null;
+        currentText = '';
+        const S = I18N[LANG] || I18N.en;
+        if (editor)      editor.value = '';
+        if (editorName)  editorName.textContent =
+          (S.filesEditorNoFile || 'No file selected.');
+        markDirty(false);
+      }
+
+      notifySuccess(`"${displayName}" deleted.`);
+      refreshTable();
+    }catch(e){
+      console.error(e);
+      notifyError('Delete failed: ' + (e.message || e));
     }finally{
       showLoading(false);
     }
@@ -2869,6 +3065,58 @@ function initFilesUI(){
   window.FX_OPEN_FILES  = openPanel;
   window.FX_CLOSE_FILES = closePanel;
 }
+
+// === OVERVIEW PANEL: shortcut buttons to other pages ==============
+function initOverviewUI(){
+  const btnMon = document.getElementById('btnGoMonitor');
+  if (btnMon){
+    btnMon.addEventListener('click', (e)=>{
+      e.preventDefault();
+      fxShowPanel('monitorPanel');
+      sideNav(false);
+    });
+  }
+
+  const btnFiles = document.getElementById('btnGoFiles');
+  if (btnFiles){
+    btnFiles.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if (window.FX_OPEN_FILES) window.FX_OPEN_FILES();
+      else fxShowPanel('filesPanel');
+      sideNav(false);
+    });
+  }
+
+  const btnSet = document.getElementById('btnGoSettings');
+  if (btnSet){
+    btnSet.addEventListener('click', (e)=>{
+      e.preventDefault();
+      if (window.FX_OPEN_SETTINGS) window.FX_OPEN_SETTINGS();
+      else fxShowPanel('settingsPanel');
+      sideNav(false);
+    });
+  }
+}
+
+// === MONITOR PANEL (nav + back) ===============================
+function initMonitorUI() {
+  const navMonitor = document.getElementById('navMonitor');
+  if (navMonitor) {
+    navMonitor.addEventListener('click', (e) => {
+      e.preventDefault();
+      fxShowPanel('monitorPanel');  // show Monitor full-screen
+      sideNav(false);               // close the side nav drawer
+    });
+  }
+
+  const btnBack = document.getElementById('btnBackMonitor');
+  if (btnBack) {
+    btnBack.addEventListener('click', (e) => {
+      e.preventDefault();
+      fxShowPanel(null);           // go back to Overview
+    });
+  }
+}
 // ============================================================
 
 function setupAuto(){
@@ -2897,7 +3145,9 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 
   applyLang();
   initSettingsUI();
-  initFilesUI();   // <--- add this line
+  initFilesUI();
+  initMonitorUI();   // wire the MONITOR page
+  initOverviewUI();
 
   if (b && t) { 
     loadOverview().catch(()=>{}); 
@@ -2969,7 +3219,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     dashFrame.style.display  = 'block';
   }
 
-  // Listen for logout request from inside the dashboard iframe
+  // Listen for logout + activity pings from inside the dashboard iframe
   window.addEventListener('message', (ev) => {
     if (ev?.data?.type === 'FIXLINE_LOGOUT'){
       try { sessionStorage.removeItem(AUTH_KEY); } catch(e){}
@@ -2980,6 +3230,11 @@ document.getElementById('interval').addEventListener('change', setupAuto);
         dashFrame.removeAttribute('data-loaded');
         dashFrame.srcdoc = '';
       });
+    } else if (ev?.data?.type === 'FX_ACTIVITY') {
+      // reset idle timer when user interacts inside dashboard iframe
+      if (typeof resetActivity === 'function') {
+        resetActivity();
+      }
     }
   });
 
