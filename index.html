@@ -1603,7 +1603,6 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   <div id="monitorPanel" class="fx-card" style="display:none; margin-top:10px;">
 
     <!-- The original main dashboard is now inside MONITOR -->
-    <h2 id="i_title" style="margin-bottom:6px;">Welcome to Fixline Dashboard</h2>
     <p id="i_sub" style="margin-bottom:12px; opacity:.85;">
       Real-time Managing Automation Scripts System.
     </p>
@@ -1997,6 +1996,13 @@ const THEME_KEY = 'fx_theme';   // 'light' or 'dark'
   });
 })();
 
+// Notifications + overview snapshot state
+const NOTIF_KEY = 'fx_notifications';
+let notifications = [];
+let notifCounter = 0;
+let lastScriptSnapshot = {};
+let hasScriptSnapshot = false;
+
 /* ===== Theme handling (light / dark) ===== */
 function applyTheme(theme){
   const body = document.body;
@@ -2382,7 +2388,6 @@ const I18N = {
   },
 
   zh: {
-    titleWelcome: "欢迎使用 FixLine 仪表盘",
     subText:      "实时管理自动化脚本系统。",
     agentConnection: "代理连接",
 
@@ -2541,7 +2546,6 @@ function applyLang(){
   const $id = (id)=>document.getElementById(id);
 
   // Main dashboard top texts
-  $id('i_title').textContent = S.titleWelcome;
   $id('i_sub').textContent   = S.subText;
   $id('i_agent').textContent = S.agentConnection;
 
@@ -4345,16 +4349,17 @@ document.getElementById('interval').addEventListener('change', setupAuto);
 </template>
 
 <script>
-(function(){
-  const AUTH_KEY = 'fixline_auth';
-  const REM_KEY  = 'fixline_remember';
-  const IDLE_KEY       = 'fixline_idle_minutes';
-  const LAST_LOGIN_KEY = 'fixline_last_login';
+(function () {
+  'use strict';
 
-  // === Account config (all login users) ======================
-  const ACCOUNTS_KEY = 'fixline_accounts';
+  const AUTH_KEY        = 'fixline_auth';
+  const USER_KEY        = 'fixline_user';
+  const REM_KEY         = 'fixline_remember';
+  const IDLE_KEY        = 'fixline_idle_minutes';
+  const LAST_LOGIN_KEY  = 'fixline_last_login';
+  const ACCOUNTS_KEY    = 'fixline_accounts';
 
-  // store keys in UPPERCASE (login is case-insensitive)
+  // Same defaults as inside the dashboard (UPPERCASE usernames)
   const DEFAULT_ACCOUNTS = {
     "ADMIN": "Fixline@123",
     "BA55":  "Ba@01",
@@ -4363,6 +4368,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
     "RTM12": "Rtm@123"
   };
 
+  // ---- shared accounts store (login & dashboard both use this) ----
   function loadAccounts() {
     try {
       const raw = window.localStorage.getItem(ACCOUNTS_KEY);
@@ -4370,124 +4376,206 @@ document.getElementById('interval').addEventListener('change', setupAuto);
         const parsed = JSON.parse(raw);
         if (parsed && typeof parsed === 'object') return parsed;
       }
-    } catch(e) {}
+    } catch (e) {}
+
     // if empty/broken, reset defaults
     const base = { ...DEFAULT_ACCOUNTS };
-    try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(base)); } catch(e) {}
+    try {
+      window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(base));
+    } catch (e) {}
     return base;
   }
 
   function saveAccounts(map) {
-    try { window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(map)); } catch(e) {}
+    try {
+      window.localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(map));
+    } catch (e) {}
   }
-  // ===========================================================
+
   const loginFrame = document.getElementById('loginFrame');
   const dashFrame  = document.getElementById('dashFrame');
+  const loader     = document.getElementById('fxLoader');
 
+  // Always start by showing the login UI
   loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
 
-  function showLoader(ms = 1200, after){
-    const L = document.getElementById('fxLoader');
-    L.classList.add('on');
+  // ---- Loader overlay helper ----
+  function showLoader(ms = 1200, after) {
+    if (!loader) {
+      if (typeof after === 'function') after();
+      return;
+    }
+    loader.classList.add('on');
     setTimeout(() => {
-      L.classList.remove('on');
-      if (after) after();
+      loader.classList.remove('on');
+      if (typeof after === 'function') after();
     }, ms);
   }
 
-  function showApp(){
-    if (!dashFrame.dataset.loaded){
+  // ---- Idle-logout handling (outer window) ----
+  let idleTimer = null;
+
+  function getIdleMinutes() {
+    try {
+      const raw = localStorage.getItem(IDLE_KEY);
+      const n   = parseInt(raw, 10);
+      if (!isFinite(n) || n <= 0) return 0;
+      return n;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  function scheduleIdle() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+    const mins = getIdleMinutes();
+    if (!mins) return; // disabled
+
+    idleTimer = setTimeout(() => {
+      try {
+        sessionStorage.removeItem(AUTH_KEY);
+        sessionStorage.removeItem(USER_KEY);
+      } catch (e) {}
+
+      showLoader(700, resetToLogin);
+    }, mins * 60 * 1000);
+  }
+
+  function resetActivity() {
+    scheduleIdle();
+  }
+
+  // ---- Show dashboard / reset back to login ----
+  function showApp() {
+    if (!dashFrame.dataset.loaded) {
       dashFrame.srcdoc = document.getElementById('dashTpl').innerHTML;
       dashFrame.dataset.loaded = '1';
     }
     loginFrame.style.display = 'none';
     dashFrame.style.display  = 'block';
+
+    // start / reset idle countdown
+    resetActivity();
   }
 
-  // Listen for logout + activity pings from inside the dashboard iframe
+  function resetToLogin() {
+    if (idleTimer) {
+      clearTimeout(idleTimer);
+      idleTimer = null;
+    }
+
+    // clear iframe + session (auth) – but keep accounts/preferences in localStorage
+    try {
+      sessionStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(USER_KEY);
+    } catch (e) {}
+
+    loginFrame.style.display = 'block';
+    dashFrame.style.display  = 'none';
+    dashFrame.removeAttribute('data-loaded');
+    dashFrame.srcdoc = '';
+    // reload a fresh login page
+    loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
+  }
+
+  // ---- Messages from dashboard iframe (logout + activity) ----
   window.addEventListener('message', (ev) => {
-    if (ev?.data?.type === 'FIXLINE_LOGOUT'){
-      try { sessionStorage.removeItem(AUTH_KEY); } catch(e){}
-      showLoader(600, () => {
-        dashFrame.style.display = 'none';
-        loginFrame.style.display = 'block';
-        loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
-        dashFrame.removeAttribute('data-loaded');
-        dashFrame.srcdoc = '';
-      });
-    } else if (ev?.data?.type === 'FX_ACTIVITY') {
-      // reset idle timer when user interacts inside dashboard iframe
-      if (typeof resetActivity === 'function') {
-        resetActivity();
-      }
+    if (!ev || !ev.data) return;
+    if (ev.data.type === 'FIXLINE_LOGOUT') {
+      // User clicked Logout inside the dashboard
+      showLoader(600, resetToLogin);
+    } else if (ev.data.type === 'FX_ACTIVITY') {
+      // Any interaction inside the dashboard iframe
+      resetActivity();
     }
   });
 
-  // Intercept login form submit inside the login iframe
+  // ---- Auto-open dashboard on refresh if already authenticated ----
+  if (sessionStorage.getItem(AUTH_KEY)) {
+    showLoader(500, showApp);
+  }
+
+  // ---- Intercept login form inside login iframe ----
   loginFrame.addEventListener('load', () => {
-    try{
+    try {
       const doc  = loginFrame.contentDocument;
       const win  = loginFrame.contentWindow;
-      const form = doc.getElementById('loginForm');
+      if (!doc || !win) return;
+
+      const form       = doc.getElementById('loginForm');
+      const userInput  = doc.getElementById('user');
+      const passInput  = doc.getElementById('pass');
+      const rememberCb = doc.getElementById('remember');
+
       if (!form) return;
 
-      // Prefill from Remember me
-      try{
-        const raw = window.localStorage.getItem(REM_KEY);
-        if (raw){
+      // Prefill from "Remember me" (username only, no password stored)
+      try {
+        const raw = localStorage.getItem(REM_KEY);
+        if (raw) {
           const saved = JSON.parse(raw);
-          if (saved && saved.remember){
-            const uField = doc.getElementById('user');
-            const pField = doc.getElementById('pass');
-            const chk    = doc.getElementById('remember');
-            if (uField && typeof saved.u === 'string') uField.value = saved.u;
-            if (pField && typeof saved.p === 'string') pField.value = saved.p;
-            if (chk) chk.checked = true;
+          if (saved && saved.user) {
+            if (userInput)  userInput.value      = saved.user;
+            if (rememberCb) rememberCb.checked   = !!saved.remember;
           }
         }
-      }catch(e){}
+      } catch (e) {}
 
-      // --- LOGIN submit (multi-account) ----------------------
-      form.addEventListener('submit', (ev) => {
-        ev.preventDefault();
-        ev.stopImmediatePropagation();
-
-        const wrap = doc.getElementById('vbtn');
-        if (wrap){
-          wrap.classList.add('play');
-          setTimeout(() => wrap.classList.remove('play'), 900);
+      // Our handler overrides the inline one inside loginTpl
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (typeof e.stopImmediatePropagation === 'function') {
+          e.stopImmediatePropagation();
         }
 
-        const uRaw = (doc.getElementById('user')?.value || '').trim();
-        const p    = (doc.getElementById('pass')?.value || '');
-        const remember = !!doc.getElementById('remember')?.checked;
+        const uRaw = userInput ? userInput.value : '';
+        const p    = passInput ? passInput.value : '';
+        const u    = (uRaw || '').trim();
 
-        const usernameKey = uRaw.toUpperCase();   // case-insensitive
-        const accounts    = loadAccounts();
-
-        if (accounts[usernameKey] && accounts[usernameKey] === p){
-          // Remember-me
-          try{
-            if (remember){
-              window.localStorage.setItem(REM_KEY, JSON.stringify({u:uRaw,p,remember:true}));
-            }else{
-              window.localStorage.removeItem(REM_KEY);
-            }
-          }catch(e){}
-
-          // Per-tab auth + store CURRENT USER
-          sessionStorage.setItem(AUTH_KEY,'1');
-          sessionStorage.setItem('fixline_user', usernameKey);
-          try{
-           window.localStorage.setItem(LAST_LOGIN_KEY, new Date().toISOString());
-          }catch(e){}
-          showLoader(1200, showApp);
-        } else {
-          if (typeof win.toast === 'function'){
-            win.toast('warning','Invalid username or password. ⚠️');
+        if (!u || !p) {
+          if (typeof win.toast === 'function') {
+            win.toast('warning', 'Please enter username and password.');
           }
+          return;
         }
+
+        const accounts = loadAccounts();
+        const key      = u.toUpperCase();
+
+        if (!accounts[key] || accounts[key] !== p) {
+          if (typeof win.toast === 'function') {
+            win.toast('warning', 'Invalid username or password. ⚠️');
+          }
+          return;
+        }
+
+        // Successful login
+        try {
+          sessionStorage.setItem(AUTH_KEY, '1');
+          sessionStorage.setItem(USER_KEY, key);
+          localStorage.setItem(LAST_LOGIN_KEY, new Date().toISOString());
+
+          if (rememberCb && rememberCb.checked) {
+            localStorage.setItem(REM_KEY, JSON.stringify({
+              remember: true,
+              user: u
+            }));
+          } else {
+            localStorage.removeItem(REM_KEY);
+          }
+        } catch (e) {}
+
+        showLoader(700, showApp);
       }, true);
+    } catch (e) {
+      console.error(e);
+    }
+  });
+})();
+</script>
       // -------------------------------------------------------
     }catch(e){}
   });
@@ -4508,6 +4596,89 @@ document.getElementById('interval').addEventListener('change', setupAuto);
       }
     }catch(e){}
   });
+
+    // ===== Idle auto-logout (based on IDLE_KEY from dashboard) =====
+  let idleMinutes = 0;
+  let lastActivity = Date.now();
+
+  function readIdleSetting(){
+    try{
+      const raw = window.localStorage.getItem(IDLE_KEY);
+      const v   = parseInt(raw, 10);
+      idleMinutes = isNaN(v) ? 0 : Math.max(0, v);
+    }catch(e){
+      idleMinutes = 0;
+    }
+  }
+
+  function resetActivity(){
+    lastActivity = Date.now();
+  }
+
+  function checkIdle(){
+    // Only enforce idle when this tab is authenticated
+    if (!sessionStorage.getItem(AUTH_KEY)) return;
+
+    // Always pick up latest setting written by the dashboard Settings page
+    readIdleSetting();
+    if (!idleMinutes) return; // 0 = off
+
+    const diff = Date.now() - lastActivity;
+    if (diff >= idleMinutes * 60 * 1000){
+      // Auto logout flow (same as manual logout)
+      sessionStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem('fixline_user');
+
+      showLoader(600, () => {
+        dashFrame.style.display = 'none';
+        loginFrame.style.display = 'block';
+        loginFrame.srcdoc = document.getElementById('loginTpl').innerHTML;
+        dashFrame.removeAttribute('data-loaded');
+        dashFrame.srcdoc = '';
+      });
+    }
+  }
+
+  // Initial read of idle setting
+  readIdleSetting();
+
+  // Track activity in the outer page (in addition to FX_ACTIVITY from iframe)
+  ['mousemove','keydown','click','touchstart','scroll'].forEach(ev => {
+    window.addEventListener(ev, resetActivity, true);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) resetActivity();
+  });
+
+  // Periodically check for idle timeout
+  setInterval(checkIdle, 15000); // every 15s
+
+  // If tab was already authenticated (sessionStorage) when reloading, go straight to dashboard
+  if (sessionStorage.getItem(AUTH_KEY)) {
+    showLoader(400, showApp);
+  }
+
+})();  // end outer IIFE
+
+  // Treat interactions on this outer page as activity too
+  ['mousemove','mousedown','keydown','touchstart'].forEach(ev=>{
+    window.addEventListener(ev, resetActivity, { passive:true });
+  });
+
+  // Start idle timer + restore dashboard if this tab was already logged in
+  readIdleSetting();
+  resetActivity();
+  setInterval(checkIdle, 15000); // check every 15s
+
+  // When user refreshes this tab, if we still have auth in *this tab*,
+  // skip login and go straight to dashboard.
+  if (sessionStorage.getItem(AUTH_KEY)) {
+    showLoader(600, showApp);
+  }
+})();
+</script>
+</body>
+</html>
 
   // When user refreshes this tab, if we still have auth in *this tab*,
   // skip login and go straight to dashboard.
