@@ -648,6 +648,427 @@ body{
 }
 @keyframes spinPulse{ 0%{ transform:scale(1) rotate(0) } 50%{ transform:scale(1.06) rotate(180deg) } 100%{ transform:scale(1) rotate(360deg) } }
 
+/* === OVERVIEW ANALYTICS LAYOUT === */
+
+.fx-overview{
+  padding:16px 18px 18px;
+}
+
+/* Top tabs like your screenshot */
+.fx-ov-tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:14px;
+}
+
+.ov-tab{
+  flex:1 1 0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:2px;
+  border-radius:999px;
+  border:1px solid #374151;
+  background:#020617;
+  color:#e5e7eb;
+  padding:8px 10px;
+  font-size:.8rem;
+  font-weight:600;
+  text-align:left;
+  cursor:default;
+  opacity:.95;
+}
+.ov-tab-title{ font-size:.8rem; text-transform:uppercase; letter-spacing:.05em; }
+.ov-tab-sub{ font-size:.7rem; opacity:.75; }
+
+/* Active tab */
+.ov-tab-active{
+  background:linear-gradient(90deg,#7a0f1f,#b91c1c);
+  border-color:#f97316;
+  box-shadow:0 0 18px rgba(248,113,113,.45);
+}
+
+/* Header text row */
+.fx-ov-header{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:8px;
+  margin-bottom:12px;
+}
+.fx-ov-title{
+  font-size:1.2rem;
+  font-weight:700;
+}
+.fx-ov-sub{
+  font-size:.85rem;
+  opacity:.85;
+}
+.fx-ov-hint{
+  font-size:.75rem;
+  opacity:.7;
+}
+
+/* KPI row (4 cards) */
+.fx-ov-kpi-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-bottom:14px;
+}
+.fx-ov-kpi{
+  flex:1 1 200px;
+  min-width:160px;
+  background:radial-gradient(circle at top left, rgba(248,113,113,.16), rgba(15,23,42,1));
+  border-radius:12px;
+  border:1px solid #374151;
+  padding:10px 12px;
+  box-shadow:0 10px 30px rgba(0,0,0,.3);
+}
+.fx-ov-kpi-label{
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  opacity:.75;
+}
+.fx-ov-kpi-value{
+  font-size:1.4rem;
+  font-weight:800;
+  margin-top:4px;
+}
+.fx-ov-kpi-sub{
+  font-size:.75rem;
+  opacity:.75;
+  margin-top:2px;
+}
+
+/* Main middle row: big chart + status chart */
+.fx-ov-main{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin-bottom:14px;
+}
+.fx-ov-main-left{ flex:3 1 280px; }
+.fx-ov-main-right{ flex:2 1 260px; }
+
+.ov-card{
+  background:rgba(0,0,0,.5);
+  border-radius:12px;
+  border:1px solid #27303f;
+  padding:10px 12px;
+}
+.ov-card header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  font-size:.9rem;
+  font-weight:600;
+}
+.ov-card-sub{
+  font-size:.75rem;
+  opacity:.7;
+}
+
+/* CPU & RAM bar chart (top 10 scripts) */
+.ov-volume-chart{
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:6px;
+  height:160px;
+  padding-top:6px;
+}
+.ov-volume-bar{
+  flex:1 1 0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:4px;
+}
+.ov-volume-bar-inner{
+  width:100%;
+  flex:1 1 auto;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  gap:2px;
+}
+.ov-volume-cpu,
+.ov-volume-mem{
+  width:9px;
+  border-radius:999px 999px 0 0;
+  min-height:4px;
+}
+.ov-volume-cpu{
+  background:linear-gradient(to top,#f97316,#fecaca);
+}
+.ov-volume-mem{
+  background:linear-gradient(to top,#22c55e,#bbf7d0);
+  opacity:.9;
+}
+.ov-volume-label{
+  font-size:.68rem;
+  opacity:.75;
+  max-width:50px;
+  white-space:nowrap;
+  text-overflow:ellipsis;
+  overflow:hidden;
+}
+
+/* Status distribution horizontal bars */
+#ov_status_chart{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.ov-status-row{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:6px;
+  font-size:.8rem;
+}
+.ov-status-label{ opacity:.9; }
+.ov-status-bar{
+  position:relative;
+  background:#020617;
+  border-radius:999px;
+  overflow:hidden;
+  height:10px;
+}
+.ov-status-fill{
+  height:100%;
+  border-radius:999px;
+  background:var(--color,#f97316);
+}
+.ov-status-fill.ov-running{ --color:#22c55e; }
+.ov-status-fill.ov-stalled{ --color:#eab308; }
+.ov-status-fill.ov-exited{  --color:#f97316; }
+.ov-status-fill.ov-unknown{ --color:#6b7280; }
+.ov-status-value{ font-variant-numeric:tabular-nums; }
+
+/* Bottom row: donut + top 5 list */
+.fx-ov-bottom{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+}
+.fx-ov-bottom-left{ flex:2 1 260px; }
+.fx-ov-bottom-right{ flex:3 1 260px; }
+
+/* Donut chart */
+.ov-donut-wrap{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.ov-donut{
+  position:relative;
+  width:130px;
+  height:130px;
+}
+.ov-donut-ring{
+  --pct: 0; /* degrees (0–360) set via JS */
+  position:absolute;
+  inset:0;
+  border-radius:50%;
+  background:
+    conic-gradient(#22c55e calc(var(--pct)*1deg), #1f2937 0deg);
+  mask: radial-gradient(farthest-side, transparent 60%, #000 62%);
+  -webkit-mask: radial-gradient(farthest-side, transparent 60%, #000 62%);
+}
+.ov-donut-core{
+  position:absolute;
+  inset:24%;
+  border-radius:50%;
+  background:#020617;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.ov-donut-value{
+  font-size:1.4rem;
+  font-weight:800;
+}
+.ov-donut-label{
+  font-size:.75rem;
+  opacity:.75;
+  margin-top:2px;
+}
+
+.ov-donut-legend{
+  font-size:.8rem;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+.ov-donut-legend .dot{
+  display:inline-block;
+  width:10px;
+  height:10px;
+  border-radius:999px;
+  margin-right:6px;
+}
+.ov-donut-legend .dot.run{ background:#22c55e; }
+.ov-donut-legend .dot.other{ background:#6b7280; }
+.ov-donut-other{
+  margin-top:4px;
+  font-size:.78rem;
+  opacity:.8;
+}
+
+/* Top 5 longest-running scripts */
+.ov-top-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+.ov-top-item{
+  padding:6px 0;
+}
+.ov-top-name{
+  font-size:.85rem;
+  font-weight:600;
+}
+.ov-top-meta{
+  font-size:.7rem;
+  opacity:.75;
+  margin-bottom:4px;
+}
+.ov-top-bar{
+  background:#020617;
+  height:8px;
+  border-radius:999px;
+  overflow:hidden;
+}
+.ov-top-fill{
+  height:100%;
+  background:linear-gradient(90deg,#f97316,#fde68a);
+}
+
+/* Placeholder text inside charts */
+.ov-placeholder{
+  font-size:.8rem;
+  opacity:.7;
+}
+
+/* Light theme overrides */
+body.fx-light .fx-overview .ov-card{
+  background:#ffffff;
+  border-color:#e5e7eb;
+}
+body.fx-light .fx-overview .fx-ov-kpi{
+  background:#f9fafb;
+  border-color:#e5e7eb;
+}
+body.fx-light .fx-overview .ov-status-bar{
+  background:#e5e7eb;
+}
+body.fx-light .fx-overview .ov-donut-core{
+  background:#f9fafb;
+}
+body.fx-light .fx-overview .ov-status-fill.ov-unknown{
+  --color:#9ca3af;
+}
+body.fx-light .ov-tab{
+  background:#e5e7eb;
+  color:#111827;
+  border-color:#d1d5db;
+}
+body.fx-light .ov-tab-active{
+  background:linear-gradient(90deg,#f97316,#facc15);
+  color:#111827;
+  border-color:#f97316;
+  box-shadow:none;
+}
+
+/* === Overview entry + hover animations === */
+@keyframes ovFadeUp{
+  0%{ opacity:0; transform:translateY(12px); }
+  100%{ opacity:1; transform:translateY(0); }
+}
+
+.fx-overview .fx-ov-tabs,
+.fx-overview .fx-ov-header,
+.fx-overview .fx-ov-kpi-row,
+.fx-overview .fx-ov-main,
+.fx-overview .fx-ov-bottom{
+  opacity:0;
+  transform:translateY(12px);
+  animation:ovFadeUp .6s ease forwards;
+}
+
+/* staggered delays so they appear in sequence */
+.fx-overview .fx-ov-tabs{   animation-delay:.05s; }
+.fx-overview .fx-ov-header{ animation-delay:.12s; }
+.fx-overview .fx-ov-kpi-row{animation-delay:.20s; }
+.fx-overview .fx-ov-main{   animation-delay:.28s; }
+.fx-overview .fx-ov-bottom{ animation-delay:.36s; }
+
+/* subtle hover lift for KPI & overview cards */
+.fx-overview .fx-ov-kpi,
+.fx-overview .ov-card{
+  transition:transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.fx-overview .fx-ov-kpi:hover,
+.fx-overview .ov-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 14px 30px rgba(0,0,0,.45);
+  border-color:#f97316;
+}
+
+/* active tab glow / sweep */
+.ov-tab{
+  position:relative;
+  overflow:hidden;
+}
+.ov-tab::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at top left,rgba(248,113,113,.35),transparent 55%);
+  opacity:0;
+  transform:translateX(-20%);
+  transition:opacity .35s ease, transform .35s ease;
+  pointer-events:none;
+}
+.ov-tab-active::before{
+  opacity:1;
+  transform:translateX(0);
+}
+
+/* Charts: bars & status fills grow smoothly */
+.ov-volume-cpu,
+.ov-volume-mem,
+.ov-status-fill,
+.ov-top-fill{
+  transform-origin:bottom;
+  animation:ovBarGrow .45s cubic-bezier(0.33,1,0.68,1);
+}
+@keyframes ovBarGrow{
+  0%{ transform:scaleY(0); }
+  100%{ transform:scaleY(1); }
+}
+
+/* Donut core "pop" when data updates */
+.ov-donut-core{
+  transition:transform .35s ease, opacity .35s ease;
+}
+.ov-donut.is-active .ov-donut-core{
+  animation:ovDonutPop .45s ease;
+}
+@keyframes ovDonutPop{
+  0%{ transform:scale(.9); opacity:.6; }
+  100%{ transform:scale(1); opacity:1; }
+}
+
 /* === Animated FixLine logo (Python-like) === */
 .fx-logo .badge svg{
   width:22px;
@@ -1007,70 +1428,124 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
 </div>
 
 <div class="content">
-  <!-- ===== NEW OVERVIEW DASHBOARD (default when opening FixLine) ===== -->
-  <div id="overviewPanel" class="fx-card">
-    <div style="display:flex;flex-wrap:wrap;gap:18px;align-items:stretch;">
-      <!-- Left: intro + shortcuts -->
-      <div style="flex:1.7 1 260px;min-width:260px;">
-        <h2 id="i_overview_title" style="margin-bottom:6px;">FixLine Overview</h2>
-        <p id="i_overview_sub" style="opacity:.85;margin-bottom:10px;">
-          Summary of your scripts and quick shortcuts.
-        </p>
+<!-- ===== OVERVIEW ANALYTICS (default page) ===== -->
+<div id="overviewPanel" class="fx-card fx-overview">
+  <!-- Tabs row (visual only, like your screenshot) -->
+  <div class="fx-ov-tabs">
+    <button class="ov-tab ov-tab-active" type="button">
+      <span class="ov-tab-title">Overview</span>
+      <span class="ov-tab-sub">Summary</span>
+    </button>
+    <button class="ov-tab" type="button" disabled>
+      <span class="ov-tab-title">Scripts</span>
+      <span class="ov-tab-sub">Performance</span>
+    </button>
+    <button class="ov-tab" type="button" disabled>
+      <span class="ov-tab-title">Resources</span>
+      <span class="ov-tab-sub">CPU / RAM</span>
+    </button>
+    <button class="ov-tab" type="button" disabled>
+      <span class="ov-tab-title">Alerts</span>
+      <span class="ov-tab-sub">Errors & logs</span>
+    </button>
+  </div>
 
-        <p id="i_overview_intro"
-           style="font-size:.9rem;opacity:.9;margin-bottom:8px;">
-          Use this page as a quick overview. For full control go to the Monitor page.
-        </p>
-
-        <ul style="font-size:.85rem;opacity:.9;margin-left:1rem;list-style:disc;">
-          <li id="i_overview_tip1">Monitor and control automation scripts in real time.</li>
-          <li id="i_overview_tip2">Open Monitor to start / stop scripts and view logs.</li>
-          <li id="i_overview_tip3">Use the Files page to upload and edit scripts on the agent.</li>
-        </ul>
-
-        <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="fx-btn ok btn-animated" id="btnGoMonitor" type="button">
-            <i class="fa-solid fa-display" style="margin-right:.35rem;"></i>
-            <span id="i_overview_go_monitor">Open Monitor</span>
-          </button>
-          <button class="fx-btn secondary btn-animated" id="btnGoFiles" type="button">
-            <i class="fa-solid fa-file-code" style="margin-right:.35rem;"></i>
-            <span id="i_overview_go_files">Script files</span>
-          </button>
-          <button class="fx-btn secondary btn-animated" id="btnGoSettings" type="button">
-            <i class="fa-solid fa-gear" style="margin-right:.35rem;"></i>
-            <span id="i_overview_go_settings">Settings</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Right: high-level stats (mirror of Monitor counters) -->
-      <div style="flex:1.2 1 240px;min-width:220px;">
-        <div class="fx-kpis">
-          <div class="fx-kpi">
-            <small id="i_k_total_ov">Total Scripts</small>
-            <strong id="ov_total">—</strong>
-          </div>
-          <div class="fx-kpi">
-            <small id="i_k_running_ov">Running</small>
-            <strong id="ov_run">—</strong>
-          </div>
-          <div class="fx-kpi">
-            <small id="i_k_stalled_ov">Stalled</small>
-            <strong id="ov_stalled">—</strong>
-          </div>
-          <div class="fx-kpi">
-            <small id="i_k_exited_ov">Exited</small>
-            <strong id="ov_exited">—</strong>
-          </div>
-        </div>
-        <p id="i_overview_stats_hint"
-           style="font-size:.78rem;opacity:.75;margin-top:8px;">
-          Stats are updated when you connect to an agent on the Monitor page.
-        </p>
-      </div>
+  <!-- Title & hint -->
+  <div class="fx-ov-header">
+    <div>
+      <p id="i_overview_sub" class="fx-ov-sub">
+      </p>
+    </div>
+    <div id="i_overview_stats_hint" class="fx-ov-hint">
     </div>
   </div>
+
+  <!-- KPI row (numbers are filled from Monitor counters) -->
+  <div class="fx-ov-kpi-row">
+    <article class="fx-ov-kpi">
+      <div class="fx-ov-kpi-label">Total scripts</div>
+      <div class="fx-ov-kpi-value" id="ov_total">—</div>
+      <div class="fx-ov-kpi-sub">Tracked by this agent</div>
+    </article>
+
+    <article class="fx-ov-kpi">
+      <div class="fx-ov-kpi-label">Running</div>
+      <div class="fx-ov-kpi-value" id="ov_run">—</div>
+      <div class="fx-ov-kpi-sub">Healthy & adopted</div>
+    </article>
+
+    <article class="fx-ov-kpi">
+      <div class="fx-ov-kpi-label">Stalled</div>
+      <div class="fx-ov-kpi-value" id="ov_stalled">—</div>
+      <div class="fx-ov-kpi-sub">Need attention</div>
+    </article>
+
+    <article class="fx-ov-kpi">
+      <div class="fx-ov-kpi-label">Exited</div>
+      <div class="fx-ov-kpi-value" id="ov_exited">—</div>
+      <div class="fx-ov-kpi-sub">Stopped or failed</div>
+    </article>
+  </div>
+
+  <!-- Middle row: CPU/RAM chart + status bars -->
+  <div class="fx-ov-main">
+    <section class="ov-card fx-ov-main-left">
+      <header>
+        <span>CPU & RAM — top 10 scripts</span>
+        <span class="ov-card-sub">Based on last refresh</span>
+      </header>
+      <div class="ov-volume-chart" id="ov_volume_chart">
+        <div class="ov-placeholder">
+          Connect an agent to see live CPU & RAM usage.
+        </div>
+      </div>
+    </section>
+
+    <section class="ov-card fx-ov-main-right">
+      <header>
+        <span>Scripts by status</span>
+        <span class="ov-card-sub">Running vs stalled / exited</span>
+      </header>
+      <div id="ov_status_chart">
+        <div class="ov-placeholder">No data yet.</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Bottom row: donut + top 5 list -->
+  <div class="fx-ov-bottom">
+    <section class="ov-card fx-ov-bottom-left">
+      <header>
+        <span>Running share</span>
+        <span class="ov-card-sub">Percent of scripts currently running</span>
+      </header>
+      <div class="ov-donut-wrap">
+        <div class="ov-donut">
+          <div class="ov-donut-ring"></div>
+          <div class="ov-donut-core">
+            <div id="ov_donut_run" class="ov-donut-value">0%</div>
+            <div class="ov-donut-label">Running</div>
+          </div>
+        </div>
+        <div class="ov-donut-legend">
+          <div><span class="dot run"></span>Running scripts</div>
+          <div><span class="dot other"></span>Other statuses</div>
+          <div class="ov-donut-other" id="ov_donut_other">0 / 0</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ov-card fx-ov-bottom-right">
+      <header>
+        <span>Top 5 longest running scripts</span>
+        <span class="ov-card-sub">Sorted by uptime</span>
+      </header>
+      <div id="ov_top_scripts" class="ov-top-list">
+        <div class="ov-placeholder">No data yet.</div>
+      </div>
+    </section>
+  </div>
+</div>
 
   <!-- === MONITOR PANEL (OLD MAIN DASHBOARD MOVED HERE) === -->
   <div id="monitorPanel" class="fx-card" style="display:none; margin-top:10px;">
@@ -1267,7 +1742,6 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   <div id="filesPanel" class="fx-card" style="display:none; margin-top:10px;">
     <h3 id="i_files_title">Script files</h3>
     <p id="i_files_sub" style="margin-bottom:12px; opacity:.85;">
-      View, upload and edit Python scripts on this agent.
     </p>
 
     <div class="settings-layout files-layout">
@@ -1665,8 +2139,6 @@ const I18N = {
     thScript:"Script", thPID:"CMD", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
     nodata:'No data yet. Click <b>Connect</b>.',
     liveTime:"Live time",
-    overviewTitle: "FixLine Overview",
-overviewSub: "Summary of your scripts and quick shortcuts.",
 overviewIntro: "Use this page as a quick overview. For full control go to the Monitor page.",
 overviewTip1: "Monitor and control automation scripts in real time.",
 overviewTip2: "Open Monitor to start / stop scripts and view logs.",
@@ -1674,7 +2146,6 @@ overviewTip3: "Use the Files page to upload and edit scripts on this agent.",
 overviewGoMonitor: "Open Monitor",
 overviewGoFiles: "Script files",
 overviewGoSettings: "Settings",
-overviewStatsHint: "Stats are updated when you connect to an agent on the Monitor page.",
 monitorTitle: "Monitor",
 monitorSub: "Detailed view for script status, actions and live CMD/logs.",
 
@@ -1728,7 +2199,6 @@ monitorSub: "Detailed view for script status, actions and live CMD/logs.",
 
     // Files (EN)
     filesTitle: "Script files",
-    filesSub: "View, upload and edit Python scripts on this agent.",
     filesListTitle: "Scripts on agent",
     filesSearchLabel: "Search / filter",
     filesSearchPlaceholder: "Filter by file name…",
@@ -2029,6 +2499,166 @@ let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
 const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
 
+// number counter for KPIs on Overview + Monitor
+function animateNumber(el, newVal){
+  if (!el) return;
+  const target = Number(newVal) || 0;
+  const prev = Number(el.dataset.value || el.textContent.replace(/[^\d.]/g,'')) || 0;
+  const diff = target - prev;
+  const duration = 500; // ms
+  const start = performance.now();
+
+  function step(now){
+    const t = Math.min(1, (now - start) / duration);
+    const value = prev + diff * t;
+    el.textContent = Math.round(value);
+    if (t < 1){
+      requestAnimationFrame(step);
+    }else{
+      el.dataset.value = target;
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+/* === Overview charts fed from currentRows === */
+function updateOverviewAnalytics(rows){
+  const all   = Array.isArray(rows) ? rows.slice() : [];
+  const total = all.length;
+
+  const volume      = document.getElementById('ov_volume_chart');
+  const statusChart = document.getElementById('ov_status_chart');
+  const topList     = document.getElementById('ov_top_scripts');
+  const donutVal    = document.getElementById('ov_donut_run');
+  const donutOther  = document.getElementById('ov_donut_other');
+  const donutRing   = document.querySelector('.ov-donut-ring');
+  const donutWrap   = document.querySelector('.ov-donut');
+
+  /* ---- CPU & RAM mini bar chart (top 10 by CPU) ---- */
+  if (volume){
+    volume.innerHTML = '';
+    if (!total){
+      const d = document.createElement('div');
+      d.className = 'ov-placeholder';
+      d.textContent = 'Connect an agent to see live CPU & RAM usage.';
+      volume.appendChild(d);
+    }else{
+      const top = all.slice()
+        .sort((a,b)=>((+b.cpu||0) - (+a.cpu||0)))
+        .slice(0,10);
+
+      top.forEach(s=>{
+        const cpu  = clamp(+s.cpu||0, 0, 100);
+        const mem  = clamp(+s.mem||0, 0, 100);
+        const name = s.name || '';
+        const short = name.length > 7 ? (name.slice(0,6)+'…') : name || '-';
+
+        const bar = document.createElement('div');
+        bar.className = 'ov-volume-bar';
+        bar.innerHTML = `
+          <div class="ov-volume-bar-inner">
+            <div class="ov-volume-cpu" style="height:${cpu || 4}%;"></div>
+            <div class="ov-volume-mem" style="height:${mem || 4}%;"></div>
+          </div>
+          <div class="ov-volume-label" title="${name}">${short}</div>`;
+        volume.appendChild(bar);
+      });
+    }
+  }
+
+  /* ---- Status distribution ---- */
+  const counts = { running:0, stalled:0, exited:0, unknown:0 };
+  all.forEach(s=>{
+    const st = (s.status || '').toLowerCase();
+    if (st === 'running' || st === 'adopted') counts.running++;
+    else if (st === 'stalled') counts.stalled++;
+    else if (st === 'exited')  counts.exited++;
+    else counts.unknown++;
+  });
+  const denom = total || 1;
+
+  if (statusChart){
+    statusChart.innerHTML = '';
+    if (!total){
+      const d = document.createElement('div');
+      d.className = 'ov-placeholder';
+      d.textContent = 'No data yet.';
+      statusChart.appendChild(d);
+    }else{
+      Object.entries(counts).forEach(([key,val])=>{
+        if (!val) return;
+        const pct = Math.round(val * 100 / denom);
+        const row = document.createElement('div');
+        row.className = 'ov-status-row';
+        const label = key[0].toUpperCase() + key.slice(1);
+        row.innerHTML = `
+          <span class="ov-status-label">${label}</span>
+          <div class="ov-status-bar">
+            <div class="ov-status-fill ov-${key}" style="width:${pct}%;"></div>
+          </div>
+          <span class="ov-status-value">${val}</span>`;
+        statusChart.appendChild(row);
+      });
+    }
+  }
+
+  /* ---- Donut: running share ---- */
+  if (donutVal || donutOther || donutRing){
+    const running = counts.running;
+    const pctRun  = total ? Math.round(running * 100 / total) : 0;
+
+    if (donutVal){
+      donutVal.textContent = pctRun + '%';
+      donutVal.dataset.value = pctRun;
+    }
+    if (donutOther){
+      donutOther.textContent = `${running}/${total}`;
+    }
+    if (donutRing){
+      donutRing.style.setProperty('--pct', String(pctRun * 3.6 || 0));
+    }
+    if (donutWrap){
+      // restart the “pop” animation each update
+      donutWrap.classList.remove('is-active');
+      void donutWrap.offsetWidth;  // force reflow
+      donutWrap.classList.add('is-active');
+    }
+  }
+
+  /* ---- Top 5 longest running scripts ---- */
+  if (topList){
+    topList.innerHTML = '';
+    if (!total){
+      const d = document.createElement('div');
+      d.className = 'ov-placeholder';
+      d.textContent = 'No data yet.';
+      topList.appendChild(d);
+    }else{
+      const top = all.slice()
+        .sort((a,b)=>((+b.uptime||0) - (+a.uptime||0)))
+        .slice(0,5);
+
+      top.forEach(s=>{
+        const name = s.name || '-';
+        const up   = (typeof fmtUptime === 'function')
+          ? fmtUptime(+s.uptime || 0)
+          : ((s.uptime||0) + 's');
+        const cpu  = clamp(+s.cpu||0, 0, 100);
+
+        const row = document.createElement('div');
+        row.className = 'ov-top-item';
+        row.innerHTML = `
+          <div class="ov-top-name" title="${name}">${name}</div>
+          <div class="ov-top-meta">${up} · CPU ${cpu.toFixed(1)}%</div>
+          <div class="ov-top-bar">
+            <div class="ov-top-fill" style="width:${cpu}%;"></div>
+          </div>`;
+        topList.appendChild(row);
+      });
+    }
+  }
+}
+
 function applyTableDensity(mode){
   const root = document.body;
   if (!root) return;
@@ -2125,22 +2755,26 @@ function renderRows(rows){
   const kStalled = document.getElementById('k_stalled');
   const kExited  = document.getElementById('k_exited');
 
-  if (kTotal)   kTotal.textContent   = total;
-  if (kRun)     kRun.textContent     = running;
-  if (kStalled) kStalled.textContent = stalled;
-  if (kExited)  kExited.textContent  = exited;
+  if (kTotal)   animateNumber(kTotal, total);
+  if (kRun)     animateNumber(kRun, running);
+  if (kStalled) animateNumber(kStalled, stalled);
+  if (kExited)  animateNumber(kExited, exited);
 
   const ovTotal   = document.getElementById('ov_total');
   const ovRun     = document.getElementById('ov_run');
   const ovStalled = document.getElementById('ov_stalled');
   const ovExited  = document.getElementById('ov_exited');
 
-  if (ovTotal)   ovTotal.textContent   = total;
-  if (ovRun)     ovRun.textContent     = running;
-  if (ovStalled) ovStalled.textContent = stalled;
-  if (ovExited)  ovExited.textContent  = exited;
+  if (ovTotal)   animateNumber(ovTotal, total);
+  if (ovRun)     animateNumber(ovRun, running);
+  if (ovStalled) animateNumber(ovStalled, stalled);
+  if (ovExited)  animateNumber(ovExited, exited);
 
-  const tb=document.getElementById('tbody'); tb.innerHTML='';
+  // feed the Overview charts (bars, donut, top 5 etc.)
+  updateOverviewAnalytics(currentRows);
+
+  const tb=document.getElementById('tbody');
+  tb.innerHTML='';
   if(view.length===0){
     const tr=document.createElement('tr');
     tr.innerHTML = `<td colspan="7">${t('nodata')}</td>`;
