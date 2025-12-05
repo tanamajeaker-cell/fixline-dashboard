@@ -393,6 +393,15 @@ html { overflow:auto; }
   min-height:calc(100vh - 4em - 2em);
 }
 
+#notifPanel.fullscreen{
+  margin:0 -1em;
+  border-radius:0;
+  border-left:0;
+  border-right:0;
+  padding:24px 24px 32px;
+  min-height:calc(100vh - 4em - 2em);
+}
+
 /* ===== Settings layout (clean two-column) ===== */
 .settings-layout{
   display:flex;
@@ -1167,6 +1176,26 @@ body.fx-light .ov-tab-active{
 .nasName{ color:#fff; padding:1em 0; font-size:1.2rem }
 .nasURL{ color:#fff; text-decoration:none; transition:.25s } .nasURL:hover{ color:crimson }
 
+/* Notification badge on side nav */
+#navNotif{
+  position:relative;
+}
+
+#navNotif[data-count]:not([data-count="0"])::after{
+  content: attr(data-count);
+  position:absolute;
+  right:14px;
+  top:50%;
+  transform:translateY(-50%);
+  background:#b91c1c;
+  color:#fff;
+  border-radius:999px;
+  padding:0 .45em;
+  font-size:.75em;
+  line-height:1.4;
+  box-shadow:0 0 0 1px #111 inset, 0 0 12px rgba(248,113,113,.65);
+}
+
 /* Power & options menus */
 #powerMenu{ position:fixed; right:.5em; top:4em; background:#1f1f1f; display:none; z-index:20 }
 #powerMenu ul{ list-style:none } #powerMenu ul li button{ width:100%; border:1px solid #3b3b3b; background:transparent; color:#fff; padding:.5em 1.5em; font-size:1.1em; cursor:pointer; text-transform:uppercase; font-weight:bold }
@@ -1263,6 +1292,27 @@ td.pct > span{ position:relative }
 .p-stalled{background:#512e08;color:#ffa536}
 .p-exited{background:#4d0f16;color:#ff8899}
 .p-unknown{background:#333;color:#ddd}
+
+/* Notification tags + rows */
+.notif-tag{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:.15rem .5rem;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:600;
+}
+.notif-info{  background:#1e293b; color:#93c5fd; }
+.notif-warn{  background:#512e08; color:#fbbf24; }
+.notif-error{ background:#4b1118; color:#fecaca; }
+
+.notif-row.unread{
+  background:rgba(248,113,113,.05);
+}
+.notif-row.unread td{
+  border-bottom-color:#4b5563;
+}
 
 /* Footer */
 footer{ width:100%; height:2em; background:black; display:flex; justify-content:center; align-items:center; position:sticky; bottom:0; color:gray }
@@ -1451,14 +1501,19 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
   </div>
 
   <!-- Title & hint -->
-  <div class="fx-ov-header">
-    <div>
-      <p id="i_overview_sub" class="fx-ov-sub">
-      </p>
-    </div>
-    <div id="i_overview_stats_hint" class="fx-ov-hint">
+<div class="fx-ov-header">
+  <div>
+    <p id="i_overview_sub" class="fx-ov-sub"></p>
+  </div>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+    <div id="i_overview_stats_hint" class="fx-ov-hint"></div>
+    <div class="fx-ov-actions" style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button id="btnGoMonitor"  type="button" class="fx-btn secondary btn-animated">Open Monitor</button>
+      <button id="btnGoFiles"    type="button" class="fx-btn secondary btn-animated">Script files</button>
+      <button id="btnGoSettings" type="button" class="fx-btn secondary btn-animated">Settings</button>
     </div>
   </div>
+</div>
 
   <!-- KPI row (numbers are filled from Monitor counters) -->
   <div class="fx-ov-kpi-row">
@@ -1633,6 +1688,10 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
         <div class="set-field">
           <span class="set-label" id="i_settings_loggedin">Logged in as</span>
           <div class="set-note"><b id="settingsUser">-</b></div>
+        </div>
+
+        <div class="set-field">
+          <span class="set-label set-note" id="lastLoginInfo">Last login: —</span>
         </div>
 
         <div class="set-field">
@@ -1814,6 +1873,78 @@ footer{ width:100%; height:2em; background:black; display:flex; justify-content:
     </div>
   </div>
   <!-- === END FILES PANEL === -->
+
+    <!-- === NOTIFICATION PANEL === -->
+  <div id="notifPanel" class="fx-card" style="display:none; margin-top:10px;">
+    <h3 id="i_notif_title">Notifications</h3>
+    <p id="i_notif_sub" style="margin-bottom:12px; opacity:.85;">
+      Recent script events and alerts for your scripts.
+    </p>
+
+    <div class="fx-card" style="margin-top:6px;">
+      <div class="fx-row" style="margin-bottom:8px; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:160px;">
+          <label class="set-label" for="notifType" id="i_notif_filter_type">Type</label>
+          <select id="notifType" class="set-control">
+            <option value="all">All</option>
+            <option value="info">Info</option>
+            <option value="warn">Warnings</option>
+            <option value="error">Errors</option>
+          </select>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:160px;">
+          <label class="set-label" for="notifState" id="i_notif_filter_state">Status</label>
+          <select id="notifState" class="set-control">
+            <option value="all">All</option>
+            <option value="unread">Unread</option>
+            <option value="read">Read</option>
+          </select>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:4px;min-width:220px;">
+          <label class="set-label" for="notifSearch" id="i_notif_filter_search">Search</label>
+          <input id="notifSearch" class="set-control"
+                 placeholder="Search in message or script name…">
+        </div>
+
+        <div style="margin-left:auto;display:flex;align-items:flex-end;gap:8px;">
+          <button class="fx-btn secondary" id="btnNotifMarkAllRead" type="button">
+            Mark all as read
+          </button>
+          <button class="fx-btn warn" id="btnNotifClear" type="button">
+            Clear all
+          </button>
+        </div>
+      </div>
+
+      <div style="max-height:380px;overflow:auto;">
+        <table class="fx-table" id="notifTable">
+          <thead>
+            <tr>
+              <th id="i_notif_col_time">Time</th>
+              <th id="i_notif_col_type">Type</th>
+              <th id="i_notif_col_source">Script</th>
+              <th id="i_notif_col_message">Message</th>
+              <th id="i_notif_col_status">Status</th>
+            </tr>
+          </thead>
+          <tbody id="notifBody">
+            <tr>
+              <td colspan="5" style="text-align:center;opacity:.75;">
+                No notifications yet. Status changes and high CPU/MEM alerts will show up here.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="settings-footer">
+      <button class="fx-btn secondary" id="btnBackNotif" type="button">Back</button>
+    </div>
+  </div>
+  <!-- === END NOTIFICATION PANEL === -->
 </div> <!-- end .content -->
 
 <!-- Toasts -->
@@ -2114,216 +2245,310 @@ async function apiGet(path){
 
 /* ===== Language (EN/中文) ===== */
 const LANG_KEY = 'fx_lang';
-let   LANG     = localStorage.getItem(LANG_KEY) || 'en';
+let LANG = localStorage.getItem(LANG_KEY) || 'en';
 
 const I18N = {
   en: {
     titleWelcome: "Welcome to Fixline Dashboard",
     subText: "Real-time Managing Automation Scripts System.",
     agentConnection: "Agent Connection",
-    kTotal: "Total Scripts", kRunning: "Running", kStalled: "Stalled", kExited: "Exited",
+
+    kTotal:   "Total Scripts",
+    kRunning: "Running",
+    kStalled: "Stalled",
+    kExited:  "Exited",
+
     actionsTitle: "IMPORTANT ACTIONS",
-    btnAutoRunning: "Auto Running", btnRestartAll: "Restart All", btnStopAll: "Stop All",
-    btnCopyUrl: "Copy Data URL", btnConnect: "Connect", btnRefresh: "Refresh",
-    phBase: "API Base URL (e.g. https://win-xxxx.ts.net)",
-    phToken: "Token (Bearer or ?token=)",
+    btnAutoRunning: "Auto Running",
+    btnRestartAll:  "Restart All",
+    btnStopAll:     "Stop All",
+    btnCopyUrl:     "Copy Data URL",
+    btnConnect:     "Connect",
+    btnRefresh:     "Refresh",
+
+    phBase:   "API Base URL (e.g. https://win-xxxx.ts.net)",
+    phToken:  "Token (Bearer or ?token=)",
     phFilter: "Filter scripts… (type)",
+
     intervalOptions: {
-      "0":"Auto-refresh: Off",
-      "1000":"Auto-refresh: 1s",
-      "2000":"Auto-refresh: 2s",
-      "5000":"Auto-refresh: 5s",
-      "10000":"Auto-refresh: 10s",
-      "30000":"Auto-refresh: 30s"
+      "0":     "Auto-refresh: Off",
+      "1000":  "Auto-refresh: 1s",
+      "2000":  "Auto-refresh: 2s",
+      "5000":  "Auto-refresh: 5s",
+      "10000": "Auto-refresh: 10s",
+      "30000": "Auto-refresh: 30s"
     },
-    thScript:"Script", thPID:"CMD", thCPU:"CPU%", thRAM:"RAM%", thUptime:"Uptime", thStatus:"Status", thActions:"Actions",
-    nodata:'No data yet. Click <b>Connect</b>.',
-    liveTime:"Live time",
-overviewIntro: "Use this page as a quick overview. For full control go to the Monitor page.",
-overviewTip1: "Monitor and control automation scripts in real time.",
-overviewTip2: "Open Monitor to start / stop scripts and view logs.",
-overviewTip3: "Use the Files page to upload and edit scripts on this agent.",
-overviewGoMonitor: "Open Monitor",
-overviewGoFiles: "Script files",
-overviewGoSettings: "Settings",
-monitorTitle: "Monitor",
-monitorSub: "Detailed view for script status, actions and live CMD/logs.",
 
-    /* === Settings (EN) === */
-    settingsTitle: "Settings",
-    settingsSub: "Account security and personal preferences for this device.",
-    settingsMyPwd: "My password",
-    settingsLoggedInAs: "Logged in as",
-    settingsCurPwd: "Current password",
-    settingsNewPwd: "New password",
-    settingsConfirmPwd: "Confirm new password",
-    settingsStorageNote: "⚠ Passwords are stored only in this browser (localStorage). For each PC / browser you may need to update again.",
-    settingsSaveBtn: "Save",
-    settingsBackBtn: "Back",
-    settingsLastLogin: "Last login",
+    thScript:  "Script",
+    thPID:     "CMD",
+    thCPU:     "CPU%",
+    thRAM:     "RAM%",
+    thUptime:  "Uptime",
+    thStatus:  "Status",
+    thActions: "Actions",
 
-    settingsPrefsTitle: "Preferences",
-    settingsPrefLang: "Dashboard language",
-    settingsPrefIdle: "Auto logout (idle)",
-    settingsPrefIdleNote: "Auto logout closes the dashboard if this tab is inactive.",
-    settingsPrefDensity: "Table density",
-    settingsDensityComfort: "Comfortable",
-    settingsDensityCompact: "Compact (more rows)",
+    nodata:   'No data yet. Click <b>Connect</b>.',
+    liveTime: "Live time",
 
-    settingsAdminTitle: "Admin tools",
-    settingsAdminNote: "As ADMIN you can reset passwords for other accounts on this device.",
-    settingsAdminSelect: "Select account",
-    settingsAdminNewPwd: "New password for selected account",
+    // Overview
+    overviewIntro:      "Use this page as a quick overview. For full control go to the Monitor page.",
+    overviewStatsHint:  "When you connect an agent in Monitor, these stats update automatically.",
+    overviewGoMonitor:  "Open Monitor",
+    overviewGoFiles:    "Script files",
+    overviewGoSettings: "Settings",
+
+    // Monitor header
+    monitorTitle: "Monitor",
+    monitorSub:   "Detailed view for script status, actions and live CMD / logs.",
+
+    /* Settings (EN) */
+    settingsTitle:        "Settings",
+    settingsSub:          "Account security and personal preferences for this device.",
+    settingsMyPwd:        "My password",
+    settingsLoggedInAs:   "Logged in as",
+    settingsCurPwd:       "Current password",
+    settingsNewPwd:       "New password",
+    settingsConfirmPwd:   "Confirm new password",
+    settingsStorageNote:  "⚠ Passwords are stored only in this browser (localStorage). For each PC / browser you may need to update again.",
+    settingsSaveBtn:      "Save",
+    settingsBackBtn:      "Back",
+    settingsLastLogin:    "Last login",
+
+    settingsPrefsTitle:       "Preferences",
+    settingsPrefLang:         "Dashboard language",
+    settingsPrefIdle:         "Auto logout (idle)",
+    settingsPrefIdleNote:     "Auto logout closes the dashboard if this tab is inactive.",
+    settingsPrefDensity:      "Table density",
+    settingsDensityComfort:   "Comfortable",
+    settingsDensityCompact:   "Compact (more rows)",
+
+    settingsAdminTitle:   "Admin tools",
+    settingsAdminNote:    "As ADMIN you can reset passwords for other accounts on this device.",
+    settingsAdminSelect:  "Select account",
+    settingsAdminNewPwd:  "New password for selected account",
     settingsAdminConfirmPwd: "Confirm new password",
-    settingsAdminSetBtn: "Set Password",
-    settingsAdminResetBtn: "Restore Default Passwords",
-    settingsAdminNote2: "🛈 These changes affect only this browser / this PC.",
+    settingsAdminSetBtn:     "Set Password",
+    settingsAdminResetBtn:   "Restore Default Passwords",
+    settingsAdminNote2:      "🛈 These changes affect only this browser / this PC.",
 
-    idleOpt0: "Never",
-    idleOpt5: "After 5 minutes",
-    idleOpt10:"After 10 minutes",
-    idleOpt15:"After 15 minutes",
-    idleOpt30:"After 30 minutes",
+    idleOpt0:  "Never",
+    idleOpt5:  "After 5 minutes",
+    idleOpt10: "After 10 minutes",
+    idleOpt15: "After 15 minutes",
+    idleOpt30: "After 30 minutes",
 
     navOverview: "Overview",
-    navFiles: "Files",
-    navSetting: "Settings",
-    navMonitor: "Monitor",
-    navNotif: "Notification",
+    navFiles:    "Files",
+    navSetting:  "Settings",
+    navMonitor:  "Monitor",
+    navNotif:    "Notification",
     topChangePass: "Change Password",
 
     settingsPwdStrength: "Password strength",
-    settingsPwdWeak: "Weak",
-    settingsPwdMedium: "Medium",
-    settingsPwdStrong: "Strong",
+    settingsPwdWeak:     "Weak",
+    settingsPwdMedium:   "Medium",
+    settingsPwdStrong:   "Strong",
 
-    // Files (EN)
-    filesTitle: "Script files",
-    filesListTitle: "Scripts on agent",
-    filesSearchLabel: "Search / filter",
+    // Files
+    filesTitle:             "Script files",
+    filesSub:               "View, upload and edit Python scripts on this agent.",
+    filesListTitle:         "Scripts on agent",
+    filesSearchLabel:       "Search / filter",
     filesSearchPlaceholder: "Filter by file name…",
-    filesUploadLabel: "Upload new script",
-    filesUploadButton: "Upload script",
-    filesUploadNote: "Files are sent to the agent API as multipart/form-data (field name: \"file\"). Existing files may be overwritten.",
-    filesColName: "File",
-    filesColSize: "Size",
-    filesColUpdated: "Last modified",
-    filesColActions: "Actions",
-    filesEditorTitle: "Editor",
-    filesEditorFileLabel: "Selected file",
-    filesEditorNoFile: "No file selected.",
-    filesEditorDiscard: "Discard",
-    filesEditorSave: "Save changes",
-    filesBackBtn: "Back",
-    filesNoFiles: "No scripts returned from API."
+    filesUploadLabel:       "Upload new script",
+    filesUploadButton:      "Upload script",
+    filesUploadNote:        "Files are sent to the agent API as multipart/form-data (field name: \"file\"). Existing files may be overwritten.",
+    filesColName:           "File",
+    filesColSize:           "Size",
+    filesColUpdated:        "Last modified",
+    filesColActions:        "Actions",
+    filesEditorTitle:       "Editor",
+    filesEditorFileLabel:   "Selected file",
+    filesEditorNoFile:      "No file selected.",
+    filesEditorDiscard:     "Discard",
+    filesEditorSave:        "Save changes",
+    filesBackBtn:           "Back",
+    filesNoFiles:           "No scripts returned from API.",
+
+    // Notifications
+    notifTitle:  "Notifications",
+    notifSub:    "Recent script events and alerts for your scripts.",
+    notifFilterType:   "Type",
+    notifFilterState:  "Status",
+    notifFilterSearch: "Search",
+    notifTypeAll:   "All",
+    notifTypeInfo:  "Info",
+    notifTypeWarn:  "Warnings",
+    notifTypeError: "Errors",
+    notifStateAll:    "All",
+    notifStateUnread: "Unread only",
+    notifStateRead:   "Read only",
+    notifSearchPlaceholder: "Search in message or script name…",
+    notifColTime:    "Time",
+    notifColType:    "Type",
+    notifColSource:  "Script",
+    notifColMessage: "Message",
+    notifColStatus:  "Status",
+    notifEmpty:      "No notifications yet. Status changes and high CPU/MEM alerts will show up here.",
+    notifMarkRead:   "Mark read",
+    notifMarkUnread: "Mark unread",
+    notifBtnClear:   "Clear all",
+    notifBtnMarkAll: "Mark all as read",
+    notifBackBtn:    "Back"
   },
 
   zh: {
     titleWelcome: "欢迎使用 FixLine 仪表盘",
-    subText: "实时管理自动化脚本系统。",
+    subText:      "实时管理自动化脚本系统。",
     agentConnection: "代理连接",
-    kTotal: "脚本总数", kRunning: "运行中", kStalled: "卡住", kExited: "已退出",
-    actionsTitle: "重要操作",
-    btnAutoRunning: "自动运行", btnRestartAll: "全部重启", btnStopAll: "全部停止",
-    btnCopyUrl: "复制数据地址", btnConnect: "连接", btnRefresh: "刷新",
-    phBase: "API 基础地址（如 https://win-xxxx.ts.net）",
-    phToken: "令牌（Bearer 或 ?token=）",
+
+    kTotal:   "脚本总数",
+    kRunning: "运行中",
+    kStalled: "卡住",
+    kExited:  "已退出",
+
+    actionsTitle:    "重要操作",
+    btnAutoRunning:  "自动运行",
+    btnRestartAll:   "全部重启",
+    btnStopAll:      "全部停止",
+    btnCopyUrl:      "复制数据地址",
+    btnConnect:      "连接",
+    btnRefresh:      "刷新",
+
+    phBase:   "API 基础地址（如 https://win-xxxx.ts.net）",
+    phToken:  "令牌（Bearer 或 ?token=）",
     phFilter: "过滤脚本…（输入类型）",
+
     intervalOptions: {
-      "0":"自动刷新：关闭",
-      "1000":"自动刷新：1秒",
-      "2000":"自动刷新：2秒",
-      "5000":"自动刷新：5秒",
-      "10000":"自动刷新：10秒",
-      "30000":"自动刷新：30秒"
+      "0":     "自动刷新：关闭",
+      "1000":  "自动刷新：1秒",
+      "2000":  "自动刷新：2秒",
+      "5000":  "自动刷新：5秒",
+      "10000": "自动刷新：10秒",
+      "30000": "自动刷新：30秒"
     },
-    thScript:"脚本", thPID:"CMD", thCPU:"CPU%", thRAM:"内存%", thUptime:"运行时长", thStatus:"状态", thActions:"操作",
-    nodata:'暂无数据。请点击 <b>连接</b>。',
-    liveTime:"实时时间",
-    overviewTitle: "FixLine 总览",
-overviewSub: "脚本概况和快捷入口。",
-overviewIntro: "此页面用于快速总览。如需完整控制，请打开“监视器”页。",
-overviewTip1: "实时查看并控制自动化脚本。",
-overviewTip2: "在“监视器”中启动 / 停止脚本并查看日志。",
-overviewTip3: "在“文件”页上传或编辑代理上的脚本。",
-overviewGoMonitor: "打开监视器",
-overviewGoFiles: "脚本文件",
-overviewGoSettings: "设置",
-overviewStatsHint: "当你在“监视器”中连接代理时，这里的统计会更新。",
-monitorTitle: "监视器",
-monitorSub: "脚本状态、操作以及 CMD / 日志的详细视图。",
 
-    /* === Settings (ZH) === */
-    settingsTitle: "设置",
-    settingsSub: "此设备的账号安全和个人偏好。",
-    settingsMyPwd: "我的密码",
-    settingsLoggedInAs: "当前登录账号",
-    settingsCurPwd: "当前密码",
-    settingsNewPwd: "新密码",
-    settingsConfirmPwd: "确认新密码",
+    thScript:  "脚本",
+    thPID:     "CMD",
+    thCPU:     "CPU%",
+    thRAM:     "内存%",
+    thUptime:  "运行时长",
+    thStatus:  "状态",
+    thActions: "操作",
+
+    nodata:   '暂无数据。请点击 <b>连接</b>。',
+    liveTime: "实时时间",
+
+    // Overview
+    overviewIntro:      "此页面用于快速总览。如需完整控制，请打开“监视器”页。",
+    overviewStatsHint:  "当你在“监视器”中连接代理时，这里的统计会更新。",
+    overviewGoMonitor:  "打开监视器",
+    overviewGoFiles:    "脚本文件",
+    overviewGoSettings: "设置",
+
+    // Monitor header
+    monitorTitle: "监视器",
+    monitorSub:   "脚本状态、操作以及 CMD / 日志的详细视图。",
+
+    /* Settings (ZH) */
+    settingsTitle:       "设置",
+    settingsSub:         "此设备的账号安全和个人偏好。",
+    settingsMyPwd:       "我的密码",
+    settingsLoggedInAs:  "当前登录账号",
+    settingsCurPwd:      "当前密码",
+    settingsNewPwd:      "新密码",
+    settingsConfirmPwd:  "确认新密码",
     settingsStorageNote: "⚠ 密码只保存在本浏览器（localStorage）中。更换电脑 / 浏览器后需要重新设置。",
-    settingsSaveBtn: "保存",
-    settingsBackBtn: "返回",
-    settingsLastLogin: "上次登录",
+    settingsSaveBtn:     "保存",
+    settingsBackBtn:     "返回",
+    settingsLastLogin:   "上次登录",
 
-    settingsPrefsTitle: "偏好设置",
-    settingsPrefLang: "仪表盘语言",
-    settingsPrefIdle: "自动登出（空闲）",
-    settingsPrefIdleNote: "如果此标签页长时间无操作，将自动退出仪表盘。",
-    settingsPrefDensity: "表格行距",
-    settingsDensityComfort: "舒适",
-    settingsDensityCompact: "紧凑（显示更多行）",
+    settingsPrefsTitle:      "偏好设置",
+    settingsPrefLang:        "仪表盘语言",
+    settingsPrefIdle:        "自动登出（空闲）",
+    settingsPrefIdleNote:    "如果此标签页长时间无操作，将自动退出仪表盘。",
+    settingsPrefDensity:     "表格行距",
+    settingsDensityComfort:  "舒适",
+    settingsDensityCompact:  "紧凑（显示更多行）",
 
-    settingsAdminTitle: "管理员工具",
-    settingsAdminNote: "作为 ADMIN，你可以为此设备上的其他账号重置密码。",
-    settingsAdminSelect: "选择账号",
-    settingsAdminNewPwd: "选中账号的新密码",
+    settingsAdminTitle:   "管理员工具",
+    settingsAdminNote:    "作为 ADMIN，你可以为此设备上的其他账号重置密码。",
+    settingsAdminSelect:  "选择账号",
+    settingsAdminNewPwd:  "选中账号的新密码",
     settingsAdminConfirmPwd: "确认新密码",
-    settingsAdminSetBtn: "设置密码",
-    settingsAdminResetBtn: "恢复默认密码",
-    settingsAdminNote2: "🛈 这些修改只影响当前浏览器 / 这台电脑。",
+    settingsAdminSetBtn:     "设置密码",
+    settingsAdminResetBtn:   "恢复默认密码",
+    settingsAdminNote2:      "🛈 这些修改只影响当前浏览器 / 这台电脑。",
 
-    idleOpt0: "从不",
-    idleOpt5: "空闲 5 分钟后",
-    idleOpt10:"空闲 10 分钟后",
-    idleOpt15:"空闲 15 分钟后",
-    idleOpt30:"空闲 30 分钟后",
+    idleOpt0:  "从不",
+    idleOpt5:  "空闲 5 分钟后",
+    idleOpt10: "空闲 10 分钟后",
+    idleOpt15: "空闲 15 分钟后",
+    idleOpt30: "空闲 30 分钟后",
 
-    navOverview: "总览",
-    navFiles: "文件",
-    navSetting: "设置",
-    navMonitor: "监视器",
-    navNotif: "通知",
-    topChangePass: "修改密码",
+    navOverview:  "总览",
+    navFiles:     "文件",
+    navSetting:   "设置",
+    navMonitor:   "监视器",
+    navNotif:     "通知",
+    topChangePass:"修改密码",
 
     settingsPwdStrength: "密码强度",
-    settingsPwdWeak: "弱",
-    settingsPwdMedium: "中",
-    settingsPwdStrong: "强",
+    settingsPwdWeak:     "弱",
+    settingsPwdMedium:   "中",
+    settingsPwdStrong:   "强",
 
-    // Files (ZH)
-    filesTitle: "脚本文件",
-    filesSub: "在此代理上查看、上传和编辑 Python 脚本。",
-    filesListTitle: "代理上的脚本",
-    filesSearchLabel: "搜索 / 过滤",
+    // Files
+    filesTitle:             "脚本文件",
+    filesSub:               "在此代理上查看、上传和编辑 Python 脚本。",
+    filesListTitle:         "代理上的脚本",
+    filesSearchLabel:       "搜索 / 过滤",
     filesSearchPlaceholder: "按文件名过滤…",
-    filesUploadLabel: "上传新脚本",
-    filesUploadButton: "上传脚本",
-    filesUploadNote: "文件以 multipart/form-data（字段名 \"file\"）发送到代理 API，重名文件可能会被覆盖。",
-    filesColName: "文件",
-    filesColSize: "大小",
-    filesColUpdated: "最后修改时间",
-    filesColActions: "操作",
-    filesEditorTitle: "编辑器",
-    filesEditorFileLabel: "已选择的文件",
-    filesEditorNoFile: "未选择文件。",
-    filesEditorDiscard: "放弃修改",
-    filesEditorSave: "保存修改",
-    filesBackBtn: "返回",
-    filesNoFiles: "API 未返回任何脚本文件。"
+    filesUploadLabel:       "上传新脚本",
+    filesUploadButton:      "上传脚本",
+    filesUploadNote:        "文件以 multipart/form-data（字段名 \"file\"）发送到代理 API，重名文件可能会被覆盖。",
+    filesColName:           "文件",
+    filesColSize:           "大小",
+    filesColUpdated:        "最后修改时间",
+    filesColActions:        "操作",
+    filesEditorTitle:       "编辑器",
+    filesEditorFileLabel:   "已选择的文件",
+    filesEditorNoFile:      "未选择文件。",
+    filesEditorDiscard:     "放弃修改",
+    filesEditorSave:        "保存修改",
+    filesBackBtn:           "返回",
+    filesNoFiles:           "API 未返回任何脚本文件。",
+
+    // Notifications
+    notifTitle:  "通知",
+    notifSub:    "脚本状态变化和告警记录。",
+    notifFilterType:   "类型",
+    notifFilterState:  "标记",
+    notifFilterSearch: "搜索",
+    notifTypeAll:   "全部",
+    notifTypeInfo:  "信息",
+    notifTypeWarn:  "警告",
+    notifTypeError: "错误",
+    notifStateAll:    "全部",
+    notifStateUnread: "仅未读",
+    notifStateRead:   "仅已读",
+    notifSearchPlaceholder: "在消息或脚本名称中搜索…",
+    notifColTime:    "时间",
+    notifColType:    "类型",
+    notifColSource:  "脚本",
+    notifColMessage: "内容",
+    notifColStatus:  "状态",
+    notifEmpty:      "目前没有通知。脚本状态变化和高 CPU/内存会显示在这里。",
+    notifMarkRead:   "标记为已读",
+    notifMarkUnread: "标记为未读",
+    notifBtnClear:   "清空全部",
+    notifBtnMarkAll: "全部标记为已读",
+    notifBackBtn:    "返回"
   }
 };
-const t = (k)=> (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
+
+const t = (k) =>
+  (I18N[LANG] && I18N[LANG][k]) || I18N.en[k] || k;
 
 function applyLang(){
   const S = I18N[LANG] || I18N.en;
@@ -2452,6 +2677,56 @@ function applyLang(){
     if (dc) dc.textContent = S.settingsDensityCompact;
   }
 
+    // Notification panel
+  if ($id('i_notif_title')) $id('i_notif_title').textContent = S.notifTitle || 'Notifications';
+  if ($id('i_notif_sub'))   $id('i_notif_sub').textContent   = S.notifSub   || 'Recent script events and alerts for your scripts.';
+
+  if ($id('i_notif_filter_type'))   $id('i_notif_filter_type').textContent   = S.notifFilterType   || 'Type';
+  if ($id('i_notif_filter_state'))  $id('i_notif_filter_state').textContent  = S.notifFilterState  || 'Status';
+  if ($id('i_notif_filter_search')) $id('i_notif_filter_search').textContent = S.notifFilterSearch || 'Search';
+
+  const ntSel = document.getElementById('notifType');
+  if (ntSel){
+    const oAll  = ntSel.querySelector('option[value="all"]');
+    const oInfo = ntSel.querySelector('option[value="info"]');
+    const oWarn = ntSel.querySelector('option[value="warn"]');
+    const oErr  = ntSel.querySelector('option[value="error"]');
+    if (oAll)  oAll.textContent  = S.notifTypeAll  || 'All';
+    if (oInfo) oInfo.textContent = S.notifTypeInfo || 'Info';
+    if (oWarn) oWarn.textContent = S.notifTypeWarn || 'Warnings';
+    if (oErr)  oErr.textContent  = S.notifTypeError|| 'Errors';
+  }
+
+  const nsSel = document.getElementById('notifState');
+  if (nsSel){
+    const oAll  = nsSel.querySelector('option[value="all"]');
+    const oUn   = nsSel.querySelector('option[value="unread"]');
+    const oRead = nsSel.querySelector('option[value="read"]');
+    if (oAll)  oAll.textContent  = S.notifStateAll    || 'All';
+    if (oUn)   oUn.textContent   = S.notifStateUnread || 'Unread only';
+    if (oRead) oRead.textContent = S.notifStateRead   || 'Read only';
+  }
+
+  const nsInput = document.getElementById('notifSearch');
+  if (nsInput && S.notifSearchPlaceholder){
+    nsInput.placeholder = S.notifSearchPlaceholder;
+  }
+
+  if ($id('i_notif_col_time'))    $id('i_notif_col_time').textContent    = S.notifColTime    || 'Time';
+  if ($id('i_notif_col_type'))    $id('i_notif_col_type').textContent    = S.notifColType    || 'Type';
+  if ($id('i_notif_col_source'))  $id('i_notif_col_source').textContent  = S.notifColSource  || 'Script';
+  if ($id('i_notif_col_message')) $id('i_notif_col_message').textContent = S.notifColMessage || 'Message';
+  if ($id('i_notif_col_status'))  $id('i_notif_col_status').textContent  = S.notifColStatus  || 'Status';
+
+  const btnNotifClear = $id('btnNotifClear');
+  if (btnNotifClear) btnNotifClear.textContent = S.notifBtnClear || 'Clear all';
+
+  const btnNotifMarkAll = $id('btnNotifMarkAllRead');
+  if (btnNotifMarkAll) btnNotifMarkAll.textContent = S.notifBtnMarkAll || 'Mark all as read';
+
+  const btnBackNotif = $id('btnBackNotif');
+  if (btnBackNotif) btnBackNotif.textContent = S.notifBackBtn || 'Back';
+
   // Nav labels
   const navMap = [
     ['navOverview','navOverview'],
@@ -2494,6 +2769,127 @@ function toggleLangOpen(open){
 langToggle.addEventListener('click', (e)=>{ e.stopPropagation(); toggleLangOpen(); });
 document.addEventListener('click', (e)=>{ if(!langRoot.contains(e.target)) toggleLangOpen(false); });
 document.querySelectorAll('.lang-item').forEach(btn=>{ btn.addEventListener('click', ()=>{ setLang(btn.dataset.lang); toggleLangOpen(false); }); });
+
+function loadNotificationsFromStorage(){
+  try{
+    const raw = localStorage.getItem(NOTIF_KEY);
+    if (!raw) return;
+    const arr = JSON.parse(raw);
+    if (Array.isArray(arr)){
+      notifications = arr;
+      notifCounter = notifications.reduce((m,n)=>Math.max(m, n.id||0), 0);
+    }
+  }catch(e){}
+  updateNotifBadge();
+}
+
+function saveNotificationsToStorage(){
+  try{
+    const max = 100; // keep last 100
+    const trimmed = notifications.slice(-max);
+    localStorage.setItem(NOTIF_KEY, JSON.stringify(trimmed));
+  }catch(e){}
+}
+
+function updateNotifBadge(){
+  const unread = notifications.filter(n=>!n.read).length;
+  const nav = document.getElementById('navNotif');
+  if (nav){
+    nav.dataset.count = unread ? String(unread) : '0';
+  }
+}
+
+// Add a new notification (type: "info" | "warn" | "error")
+function pushNotification(type, message, extra){
+  const now = Date.now();
+  const id  = ++notifCounter;
+  const n = {
+    id,
+    type,
+    message,
+    script: extra?.script || '',
+    status: extra?.status || '',
+    ts: now,
+    read: false
+  };
+  notifications.push(n);
+  saveNotificationsToStorage();
+  updateNotifBadge();
+  renderNotificationTable();
+
+  // optional: pop a toast for important things
+  if (type === 'error'){
+    notifyError(message);
+  }else if (type === 'warn'){
+    notifyWarn(message);
+  }
+}
+
+/* Compare new overview data vs previous snapshot and generate alerts */
+function scanForAlerts(rows){
+  if (!Array.isArray(rows) || !rows.length){
+    // reset snapshot on empty
+    lastScriptSnapshot = {};
+    hasScriptSnapshot  = false;
+    return;
+  }
+
+  const map = {};
+  rows.forEach(r=>{
+    const key = String(r.id || r.name || '').trim();
+    if (!key) return;
+    map[key] = {
+      status: (r.status || '').toLowerCase(),
+      cpu: +r.cpu || 0,
+      mem: +r.mem || 0
+    };
+  });
+
+  if (!hasScriptSnapshot){
+    lastScriptSnapshot = map;
+    hasScriptSnapshot  = true;
+    return;
+  }
+
+  rows.forEach(r=>{
+    const key = String(r.id || r.name || '').trim();
+    if (!key) return;
+
+    const prev   = lastScriptSnapshot[key] || {status:'',cpu:0,mem:0};
+    const status = (r.status || '').toLowerCase();
+    const cpu    = +r.cpu || 0;
+    const mem    = +r.mem || 0;
+    const name   = r.name || key;
+
+    // status change
+    if (prev.status && status && status !== prev.status){
+      let type = 'info';
+      if (status === 'stalled' || status === 'exited') type = 'error';
+      else if (prev.status === 'stalled' || prev.status === 'exited') type = 'warn';
+
+      pushNotification(type,
+        `Status changed: ${name} — ${prev.status || 'unknown'} → ${status}`,
+        { script:name, status }
+      );
+    }
+
+    // high CPU / MEM
+    if (cpu >= 90 && prev.cpu < 90){
+      pushNotification('warn',
+        `High CPU usage on ${name}: ${cpu.toFixed(1)}%`,
+        { script:name, status }
+      );
+    }
+    if (mem >= 90 && prev.mem < 90){
+      pushNotification('warn',
+        `High memory usage on ${name}: ${mem.toFixed(1)}%`,
+        { script:name, status }
+      );
+    }
+  });
+
+  lastScriptSnapshot = map;
+}
 
 let timer=null, currentRows=[];
 let sortKey='name', sortDir=1;
@@ -2670,15 +3066,16 @@ function fxShowPanel(panelId){
   const settings = document.getElementById('settingsPanel');
   const files    = document.getElementById('filesPanel');
   const monitor  = document.getElementById('monitorPanel');
+  const notif    = document.getElementById('notifPanel');
 
-  // Hide special panels
-  [settings, files, monitor].forEach(el => {
+  // Hide all secondary panels
+  [settings, files, monitor, notif].forEach(el => {
     if (!el) return;
     el.style.display = 'none';
     el.classList.remove('fullscreen');
   });
 
-  // Overview is visible only when no special panel is requested
+  // Overview visible only when nothing else is requested
   if (overview){
     overview.style.display = panelId ? 'none' : 'block';
   }
@@ -2694,6 +3091,9 @@ function fxShowPanel(panelId){
   } else if (panelId === 'monitorPanel' && monitor){
     monitor.style.display = 'block';
     monitor.classList.add('fullscreen');
+  } else if (panelId === 'notifPanel' && notif){
+    notif.style.display = 'block';
+    notif.classList.add('fullscreen');
   }
 }
 
@@ -2772,6 +3172,9 @@ function renderRows(rows){
 
   // feed the Overview charts (bars, donut, top 5 etc.)
   updateOverviewAnalytics(currentRows);
+
+  // update Notifications (status changes / high usage)
+  scanForAlerts(currentRows);
 
   const tb=document.getElementById('tbody');
   tb.innerHTML='';
@@ -3313,13 +3716,105 @@ function initSettingsUI(){
     });
   }
 
-  // Overview + Notification just go back to the main dashboard
-  ['navOverview','navNotif'].forEach(id=>{
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('click', (e)=>{
+  // Overview just goes back to main dashboard
+  const navOverview = document.getElementById('navOverview');
+  if (navOverview){
+    navOverview.addEventListener('click', (e)=>{
       e.preventDefault();
       fxShowPanel(null);
+    });
+  }
+} // <-- this closes initSettingsUI
+
+// === Notifications table renderer (global) ===
+function renderNotificationTable(){
+  const body   = document.getElementById('notifBody');
+  if (!body) return;
+
+  const typeSel  = document.getElementById('notifType');
+  const stateSel = document.getElementById('notifState');
+  const search   = document.getElementById('notifSearch');
+
+  const type  = typeSel ? typeSel.value : 'all';
+  const state = stateSel ? stateSel.value : 'all';
+  const q     = (search?.value || '').trim().toLowerCase();
+
+  const S = I18N[LANG] || I18N.en;
+
+  let list = notifications.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+
+  if (type !== 'all'){
+    list = list.filter(n => n.type === type);
+  }
+  if (state === 'unread') list = list.filter(n => !n.read);
+  else if (state === 'read') list = list.filter(n => n.read);
+
+  if (q){
+    list = list.filter(n =>
+      (n.message && n.message.toLowerCase().includes(q)) ||
+      (n.script  && n.script.toLowerCase().includes(q))
+    );
+  }
+
+  body.innerHTML = '';
+  if (!list.length){
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="5" style="text-align:center;opacity:.75;">${
+      S.notifEmpty || 'No notifications yet.'
+    }</td>`;
+    body.appendChild(tr);
+    return;
+  }
+
+  const fmtTime = ts => {
+    const d = new Date(ts);
+    if (!isFinite(d.getTime())) return '—';
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  };
+
+  list.forEach(n=>{
+    const tr = document.createElement('tr');
+    tr.className = 'notif-row' + (n.read ? '' : ' unread');
+
+    const typeLabel = n.type === 'error'
+      ? (S.notifTypeError || 'Error')
+      : n.type === 'warn'
+        ? (S.notifTypeWarn || 'Warning')
+        : (S.notifTypeInfo || 'Info');
+
+    const tagClass = n.type === 'error'
+      ? 'notif-error'
+      : n.type === 'warn'
+        ? 'notif-warn'
+        : 'notif-info';
+
+    const btnLabel = n.read
+      ? (S.notifMarkUnread || 'Mark unread')
+      : (S.notifMarkRead  || 'Mark read');
+
+    tr.innerHTML = `
+      <td>${fmtTime(n.ts)}</td>
+      <td><span class="notif-tag ${tagClass}">${typeLabel}</span></td>
+      <td>${n.script || '—'}</td>
+      <td>${n.message}</td>
+      <td>
+        <button class="fx-btn secondary btn-animated" data-notif-toggle="${n.id}">
+          ${btnLabel}
+        </button>
+      </td>`;
+    body.appendChild(tr);
+  });
+
+  body.querySelectorAll('[data-notif-toggle]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const id = Number(btn.dataset.notifToggle);
+      const n  = notifications.find(x=>x.id===id);
+      if (!n) return;
+      n.read = !n.read;
+      saveNotificationsToStorage();
+      updateNotifBadge();
+      renderNotificationTable();
     });
   });
 }
@@ -3482,6 +3977,7 @@ function initFilesUI(){
     async function deleteFile(id){
     if (!id) return;
 
+    
     // Find file info for nice name in confirm dialog
     const meta = files.find(f => String(f.id ?? f.name) === String(id));
     const displayName = meta ? (meta.path || meta.name || id) : id;
@@ -3732,6 +4228,76 @@ function initOverviewUI(){
   }
 }
 
+// === NOTIFICATION PANEL (nav + back) ===============================
+function initNotifUI(){
+  const panel       = document.getElementById('notifPanel');
+  if (!panel) return;
+
+  const navNotif    = document.getElementById('navNotif');
+  const btnBack     = document.getElementById('btnBackNotif');
+  const typeSel     = document.getElementById('notifType');
+  const stateSel    = document.getElementById('notifState');
+  const search      = document.getElementById('notifSearch');
+  const btnClear    = document.getElementById('btnNotifClear');
+  const btnMarkAll  = document.getElementById('btnNotifMarkAllRead');
+
+  function openPanel(){
+    fxShowPanel('notifPanel');
+    sideNav(false);
+    renderNotificationTable();
+  }
+  function closePanel(){
+    fxShowPanel(null);
+  }
+
+  if (navNotif){
+    navNotif.addEventListener('click', (e)=>{
+      e.preventDefault();
+      openPanel();
+    });
+  }
+  if (btnBack){
+    btnBack.addEventListener('click',(e)=>{
+      e.preventDefault();
+      closePanel();
+    });
+  }
+
+  if (typeSel)  typeSel.addEventListener('change', ()=>renderNotificationTable());
+  if (stateSel) stateSel.addEventListener('change', ()=>renderNotificationTable());
+  if (search)   search.addEventListener('input', ()=>renderNotificationTable());
+
+  if (btnClear){
+    btnClear.addEventListener('click', async (e)=>{
+      e.preventDefault();
+      if (!notifications.length) return;
+      const ok = await fxConfirm('Clear all notifications?');
+      if (!ok) return;
+      notifications = [];
+      saveNotificationsToStorage();
+      updateNotifBadge();
+      renderNotificationTable();
+    });
+  }
+
+  if (btnMarkAll){
+    btnMarkAll.addEventListener('click',(e)=>{
+      e.preventDefault();
+      let changed = false;
+      notifications.forEach(n=>{ if (!n.read){ n.read = true; changed = true; } });
+      if (changed){
+        saveNotificationsToStorage();
+        updateNotifBadge();
+        renderNotificationTable();
+      }
+    });
+  }
+
+  // first load from storage
+  loadNotificationsFromStorage();
+  renderNotificationTable();
+}
+
 // === MONITOR PANEL (nav + back) ===============================
 function initMonitorUI() {
   const navMonitor = document.getElementById('navMonitor');
@@ -3782,6 +4348,7 @@ document.getElementById('interval').addEventListener('change', setupAuto);
   initFilesUI();
   initMonitorUI();   // wire the MONITOR page
   initOverviewUI();
+  initNotifUI();     // wire the NOTIFICATION page
 
   if (b && t) { 
     loadOverview().catch(()=>{}); 
